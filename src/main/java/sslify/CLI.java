@@ -6,7 +6,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
 public class CLI {
-    public static void main(String[] args) throws NamingException, IOException, InvalidKeySpecException, NoSuchAlgorithmException {
+    public static void main(String[] args) throws NamingException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         if (args.length != 2) {
             System.err.println("We expect a command and a username as arguments.");
             System.exit(1);

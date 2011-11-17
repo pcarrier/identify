@@ -6,7 +6,6 @@ import javax.naming.directory.Attributes;
 import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Formatter;
 import java.util.Hashtable;
@@ -23,28 +22,30 @@ class LDAPDataSource extends InitialDirContext {
 
     static LDAPDataSource singleton = null;
 
-    static String PROP_BASE_DN_USER = "queries.basedn.user"; //NON-NLS
-    static String PROP_QUERIES_USER = "queries.filter.user"; //NON-NLS
-    static String PROP_BASE_DN_GROUPS = "queries.basedn.groups"; //NON-NLS
-    static String PROP_QUERIES_GROUPS = "queries.filter.groups"; //NON-NLS
-    static String[] USER_ATTRIBUTES = {"cn", "uid", "mail"};
-    static String[] GROUP_ATTRIBUTES = {"cn"};
+    private static String
+            PROP_BASE_DN_USER = "queries.basedn.user",
+            PROP_QUERIES_USER = "queries.filter.user",
+            PROP_BASE_DN_GROUPS = "queries.basedn.groups",
+            PROP_QUERIES_GROUPS = "queries.filter.groups";
+    static String[]
+            USER_ATTRIBUTES = {"cn", "uid", "mail"},
+            GROUP_ATTRIBUTES = {"cn"};
 
     private LDAPDataSource(Hashtable<?, ?> environment) throws NamingException {
         super(environment);
     }
 
-    static LDAPDataSource getInstance() throws NamingException, IOException {
+    static LDAPDataSource getInstance() throws NamingException {
         if (singleton == null) {
             singleton = new LDAPDataSource(ConfigProperties.getProperties(ConfigProperties.LDAP));
         }
         return singleton;
     }
 
-    CertInfo getInfos(String name) throws NamingException, IOException {
+    CertInfo getInfos(String name) throws NamingException {
         ConfigProperties props = ConfigProperties.getProperties(ConfigProperties.LDAP);
         Formatter formatter = new Formatter();
-        
+
         String cn, uid, mail;
         ArrayList<String> groups = new ArrayList<String>();
 
@@ -78,7 +79,7 @@ class LDAPDataSource extends InitialDirContext {
         while (groups_results.hasMore()) {
             groups.add(groups_results.next().getAttributes().get("cn").get().toString());
         }
-        
+
         return new CertInfo(cn, uid, mail, groups);
     }
 }

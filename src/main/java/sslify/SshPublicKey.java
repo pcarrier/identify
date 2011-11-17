@@ -8,6 +8,7 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
 import org.apache.commons.codec.binary.Base64;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.KeyFactory;
 import java.security.MessageDigest;
@@ -89,5 +90,9 @@ public class SshPublicKey {
             final BigInteger mod = readMPInt(keyInput);
             key = KeyFactory.getInstance("RSA").generatePublic(new RSAPublicKeySpec(mod, exp));
         }
+    }
+
+    static SshPublicKey fromRepo(String name) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+        return FSDataSource.getInstance().getSshPublicKey(name);
     }
 }

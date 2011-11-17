@@ -6,8 +6,16 @@ import java.util.HashMap;
 import java.util.Properties;
 
 public class ConfigProperties extends Properties {
-    public static String LDAP = "ldap";
-    public static String REPO = "repo";
+    public static class ConfigLoadingException extends RuntimeException {
+        public ConfigLoadingException(String fullName) {
+            super(fullName);
+        }
+    }
+
+    public static String
+            LDAP = "ldap",
+            REPO = "repo",
+            X509 = "x509";
 
     private ConfigProperties() {
         super();
@@ -17,7 +25,7 @@ public class ConfigProperties extends Properties {
 
     public static HashMap<String, ConfigProperties> loaded = new HashMap<String, ConfigProperties>();
 
-    static public ConfigProperties getProperties(String name) throws IOException {
+    static public ConfigProperties getProperties(String name) throws ConfigLoadingException {
         if (loaded.containsKey(name)) {
             return loaded.get(name);
         } else {
@@ -25,8 +33,12 @@ public class ConfigProperties extends Properties {
             final String fullName = name + ".conf.properties";
             final InputStream inputStream = ConfigProperties.class.getClassLoader().getResourceAsStream(fullName);
             if (inputStream == null)
-                throw new IOException("Failed reading " + fullName);
-            props.load(inputStream);
+                throw new ConfigLoadingException(fullName);
+            try {
+                props.load(inputStream);
+            } catch (IOException e) {
+                throw new ConfigLoadingException(fullName);
+            }
             loaded.put(name, props);
             return props;
         }
