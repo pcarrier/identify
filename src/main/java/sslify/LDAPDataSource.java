@@ -20,15 +20,16 @@ class LDAPDataSource extends InitialDirContext {
     static class TooManyUsersException extends NamingException {
     }
 
-    static LDAPDataSource singleton = null;
+    private static LDAPDataSource singleton = null;
 
-    private static String PROP_BASE_DN_USER = "queries.basedn.user";
-    private static String PROP_QUERIES_USER = "queries.filter.user";
-    private static String PROP_BASE_DN_GROUPS = "queries.basedn.groups";
-    private static String PROP_QUERIES_GROUPS = "queries.filter.groups";
-    static String[]
-            USER_ATTRIBUTES = {"cn", "uid", "mail"},
-            GROUP_ATTRIBUTES = {"cn"};
+    private static final String
+            PROP_BASE_DN_USER = "queries.basedn.user",
+            PROP_QUERIES_USER = "queries.filter.user",
+            PROP_BASE_DN_GROUPS = "queries.basedn.groups",
+            PROP_QUERIES_GROUPS = "queries.filter.groups";
+    private static final String[]
+            USER_ATTRIBUTES = {"cn", "uid", "mail"};
+    private static final String[] GROUP_ATTRIBUTES = {"cn"};
 
     private LDAPDataSource(final Hashtable<?, ?> environment) throws NamingException {
         super(environment);

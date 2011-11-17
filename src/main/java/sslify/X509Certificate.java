@@ -16,10 +16,7 @@ import javax.naming.NamingException;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.*;
-import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
-import java.security.cert.CertificateExpiredException;
-import java.security.cert.CertificateNotYetValidException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Calendar;
 import java.util.Hashtable;
@@ -37,7 +34,7 @@ public class X509Certificate {
     private static java.security.cert.X509Certificate caCert;
     private static PrivateKey caPrivateKey;
 
-    static java.security.cert.X509Certificate createCert(final String user) throws IOException, CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, NamingException, SignatureException, InvalidKeyException, NoSuchProviderException, CertificateEncodingException, CertificateExpiredException, CertificateNotYetValidException {
+    static java.security.cert.X509Certificate createCert(final String user) throws IOException, CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, NamingException, SignatureException, InvalidKeyException, NoSuchProviderException {
         final UUID uuid = new UUID();
         final X509V3CertificateGenerator generator = new X509V3CertificateGenerator();
 

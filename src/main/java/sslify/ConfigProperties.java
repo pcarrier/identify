@@ -12,7 +12,7 @@ public class ConfigProperties extends Properties {
         }
     }
 
-    public static String
+    public static final String
             LDAP = "ldap",
             REPO = "repo",
             X509 = "x509";
@@ -23,9 +23,9 @@ public class ConfigProperties extends Properties {
 
     ;
 
-    public static HashMap<String, ConfigProperties> loaded = new HashMap<String, ConfigProperties>();
+    private static final HashMap<String, ConfigProperties> loaded = new HashMap<String, ConfigProperties>();
 
-    static public ConfigProperties getProperties(String name) throws ConfigLoadingException {
+    static public ConfigProperties getProperties(final String name) throws ConfigLoadingException {
         if (loaded.containsKey(name)) {
             return loaded.get(name);
         } else {

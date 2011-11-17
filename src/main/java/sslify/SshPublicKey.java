@@ -19,7 +19,7 @@ import java.security.spec.RSAPublicKeySpec;
 
 public class SshPublicKey {
     private static final String NO_COMMENT_AVAILABLE = "unavailable";
-    public static final String SSH_RSA_PREFIX = "ssh-rsa";
+    private static final String SSH_RSA_PREFIX = "ssh-rsa";
 
     public static class UnreadableKey extends IllegalStateException {
         final public static String INVALID_FORMAT = "Invalid format";
@@ -73,25 +73,25 @@ public class SshPublicKey {
 
     public SshPublicKey(final String description) throws InvalidKeySpecException, NoSuchAlgorithmException, UnreadableKey {
         final String[] parts = Iterables.toArray(Splitter.on(CharMatcher.JAVA_WHITESPACE).split(description), String.class);
-        String encoded_key;
+        final String encodedKey;
 
         if (parts.length == 1) {
             comment = NO_COMMENT_AVAILABLE;
-            encoded_key = description;
+            encodedKey = description;
         } else if (parts.length == 3) {
             comment = parts[2];
-            encoded_key = parts[1];
+            encodedKey = parts[1];
         } else {
             throw new UnreadableKey(UnreadableKey.INVALID_FORMAT);
         }
 
-        byte[] decoded_key = Base64.decodeBase64(encoded_key);
+        final byte[] decodedKey = Base64.decodeBase64(encodedKey);
 
-        MessageDigest sha1dg = MessageDigest.getInstance("SHA-1");
-        sha1dg.update(decoded_key);
-        fingerprint = new BigInteger(sha1dg.digest()).toString(16);
+        final MessageDigest sha1Digester = MessageDigest.getInstance("SHA-1");
+        sha1Digester.update(decodedKey);
+        fingerprint = new BigInteger(sha1Digester.digest()).toString(16);
 
-        final ByteArrayDataInput keyInput = ByteStreams.newDataInput(decoded_key);
+        final ByteArrayDataInput keyInput = ByteStreams.newDataInput(decodedKey);
         final String type_string = readString(keyInput);
 
         if (!type_string.equals(SSH_RSA_PREFIX)) {
@@ -104,7 +104,7 @@ public class SshPublicKey {
         }
     }
 
-    static SshPublicKey fromRepo(String name) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+    static SshPublicKey fromRepo(final String name) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         return FSDataSource.getInstance().getSshPublicKey(name);
     }
 }

@@ -8,7 +8,7 @@ import java.security.spec.InvalidKeySpecException;
 public class CLI {
     private static final String INVALID_SYNTAX_ERROR = "We expect a command and a username as arguments.";
 
-    public static void main(String[] args) throws NamingException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+    public static void main(final String[] args) throws NamingException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
         if (args.length != 2) {
             System.err.println(INVALID_SYNTAX_ERROR);
             System.exit(1);

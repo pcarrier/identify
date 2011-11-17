@@ -10,22 +10,21 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Formatter;
 
 public class FSDataSource {
-    static String PROP_PATH = "repo.keypath";
+    private static FSDataSource singleton = null;
+    private static final String PROP_PATH = "repo.keypath";
 
 
-    String getSshPublicKeyText(String name) throws IOException {
-        Formatter formatter = new Formatter();
-        ConfigProperties props = ConfigProperties.getProperties(ConfigProperties.REPO);
-        String path = formatter.format(props.getProperty(PROP_PATH), name).toString();
-        File keyFile = new File(path);
+    String getSshPublicKeyText(final String name) throws IOException {
+        final Formatter formatter = new Formatter();
+        final ConfigProperties props = ConfigProperties.getProperties(ConfigProperties.REPO);
+        final String path = formatter.format(props.getProperty(PROP_PATH), name).toString();
+        final File keyFile = new File(path);
         return Files.readFirstLine(keyFile, Charset.forName("UTF-8"));
     }
-    
-    SshPublicKey getSshPublicKey(String name) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
+
+    SshPublicKey getSshPublicKey(final String name) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
         return new SshPublicKey(getSshPublicKeyText(name));
     }
-
-    static FSDataSource singleton = null;
 
     static FSDataSource getInstance() {
         if (singleton == null) {
