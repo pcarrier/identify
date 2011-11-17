@@ -7,7 +7,7 @@ import java.util.Properties;
 
 public class ConfigProperties extends Properties {
     public static class ConfigLoadingException extends RuntimeException {
-        public ConfigLoadingException(String fullName) {
+        public ConfigLoadingException(final String fullName) {
             super(fullName);
         }
     }
@@ -29,7 +29,7 @@ public class ConfigProperties extends Properties {
         if (loaded.containsKey(name)) {
             return loaded.get(name);
         } else {
-            ConfigProperties props = new ConfigProperties();
+            final ConfigProperties props = new ConfigProperties();
             final String fullName = name + ".conf.properties";
             final InputStream inputStream = ConfigProperties.class.getClassLoader().getResourceAsStream(fullName);
             if (inputStream == null)

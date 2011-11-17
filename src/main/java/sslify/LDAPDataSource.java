@@ -22,16 +22,15 @@ class LDAPDataSource extends InitialDirContext {
 
     static LDAPDataSource singleton = null;
 
-    private static String
-            PROP_BASE_DN_USER = "queries.basedn.user",
-            PROP_QUERIES_USER = "queries.filter.user",
-            PROP_BASE_DN_GROUPS = "queries.basedn.groups",
-            PROP_QUERIES_GROUPS = "queries.filter.groups";
+    private static String PROP_BASE_DN_USER = "queries.basedn.user";
+    private static String PROP_QUERIES_USER = "queries.filter.user";
+    private static String PROP_BASE_DN_GROUPS = "queries.basedn.groups";
+    private static String PROP_QUERIES_GROUPS = "queries.filter.groups";
     static String[]
             USER_ATTRIBUTES = {"cn", "uid", "mail"},
             GROUP_ATTRIBUTES = {"cn"};
 
-    private LDAPDataSource(Hashtable<?, ?> environment) throws NamingException {
+    private LDAPDataSource(final Hashtable<?, ?> environment) throws NamingException {
         super(environment);
     }
 
@@ -42,12 +41,12 @@ class LDAPDataSource extends InitialDirContext {
         return singleton;
     }
 
-    CertInfo getInfos(String name) throws NamingException {
-        ConfigProperties props = ConfigProperties.getProperties(ConfigProperties.LDAP);
-        Formatter formatter = new Formatter();
+    CertInfo getInfos(final String name) throws NamingException {
+        final ConfigProperties props = ConfigProperties.getProperties(ConfigProperties.LDAP);
+        final Formatter formatter = new Formatter();
 
-        String cn, uid, mail;
-        ArrayList<String> groups = new ArrayList<String>();
+        final String cn, uid, mail;
+        final ArrayList<String> groups = new ArrayList<String>();
 
         final SearchControls user_controls = new SearchControls();
         user_controls.setSearchScope(SearchControls.SUBTREE_SCOPE);
@@ -57,13 +56,13 @@ class LDAPDataSource extends InitialDirContext {
         groups_controls.setSearchScope(SearchControls.SUBTREE_SCOPE);
         groups_controls.setReturningAttributes(GROUP_ATTRIBUTES);
 
-        String user_query = formatter.format(props.getProperty(PROP_QUERIES_USER), name).toString();
-        String groups_query = formatter.format(props.getProperty(PROP_QUERIES_GROUPS), name).toString();
+        final String user_query = formatter.format(props.getProperty(PROP_QUERIES_USER), name).toString();
+        final String groups_query = formatter.format(props.getProperty(PROP_QUERIES_GROUPS), name).toString();
 
         final NamingEnumeration<SearchResult> user_results = this.search(props.getProperty(PROP_BASE_DN_USER), user_query, user_controls);
         if (!user_results.hasMore())
             throw new MissingUserException();
-        Attributes attributes = user_results.next().getAttributes();
+        final Attributes attributes = user_results.next().getAttributes();
         if (user_results.hasMore())
             throw new TooManyUsersException();
 

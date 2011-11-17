@@ -16,7 +16,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPublicKeySpec;
-import java.util.Arrays;
 
 public class SshPublicKey {
     public static final String SSH_RSA_PREFIX = "ssh-rsa";
