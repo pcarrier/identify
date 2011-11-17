@@ -18,7 +18,20 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPublicKeySpec;
 
 public class SshPublicKey {
+    private static final String NO_COMMENT_AVAILABLE = "unavailable";
     public static final String SSH_RSA_PREFIX = "ssh-rsa";
+
+    public static class UnreadableKey extends IllegalStateException {
+        final public static String INVALID_FORMAT = "Invalid format";
+        final public static String INVALID_KEY_TYPE = "Invalid key type";
+
+        public UnreadableKey(final String s) {
+            super(s);
+        }
+
+        private UnreadableKey() {
+        }
+    }
 
     enum Type {RSA}
 
@@ -44,32 +57,32 @@ public class SshPublicKey {
         return Objects.toStringHelper(this).add("type", type).add("fingerprint", fingerprint).add("comment", comment).toString();
     }
 
-    private static BigInteger readMPInt(ByteArrayDataInput source) {
-        int length = source.readInt();
-        byte[] dest = new byte[length];
+    private static BigInteger readMPInt(final ByteArrayDataInput source) {
+        final int length = source.readInt();
+        final byte[] dest = new byte[length];
         source.readFully(dest, 0, length);
         return new BigInteger(dest);
     }
 
-    private static String readString(ByteArrayDataInput source) {
-        int length = source.readInt();
-        byte[] dest = new byte[length];
+    private static String readString(final ByteArrayDataInput source) {
+        final int length = source.readInt();
+        final byte[] dest = new byte[length];
         source.readFully(dest, 0, length);
         return new String(dest);
     }
 
-    public SshPublicKey(String description) throws InvalidKeySpecException, NoSuchAlgorithmException {
-        String[] parts = Iterables.toArray(Splitter.on(CharMatcher.JAVA_WHITESPACE).split(description), String.class);
+    public SshPublicKey(final String description) throws InvalidKeySpecException, NoSuchAlgorithmException, UnreadableKey {
+        final String[] parts = Iterables.toArray(Splitter.on(CharMatcher.JAVA_WHITESPACE).split(description), String.class);
         String encoded_key;
 
         if (parts.length == 1) {
-            comment = "no comment";
+            comment = NO_COMMENT_AVAILABLE;
             encoded_key = description;
         } else if (parts.length == 3) {
             comment = parts[2];
             encoded_key = parts[1];
         } else {
-            throw new IllegalStateException("Key format is unreadable");
+            throw new UnreadableKey(UnreadableKey.INVALID_FORMAT);
         }
 
         byte[] decoded_key = Base64.decodeBase64(encoded_key);
@@ -82,7 +95,7 @@ public class SshPublicKey {
         final String type_string = readString(keyInput);
 
         if (!type_string.equals(SSH_RSA_PREFIX)) {
-            throw new IllegalStateException("Not an RSA key");
+            throw new UnreadableKey(UnreadableKey.INVALID_KEY_TYPE);
         } else {
             type = Type.RSA;
             final BigInteger exp = readMPInt(keyInput);
