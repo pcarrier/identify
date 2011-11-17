@@ -2,6 +2,7 @@ package sslify;
 
 import com.eaio.uuid.UUID;
 import org.bouncycastle.asn1.DEROctetString;
+import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.asn1.x509.X509Extensions;
@@ -16,29 +17,19 @@ import java.math.BigInteger;
 import java.security.*;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateParsingException;
-import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Calendar;
 
-public class SslCertificateGenerator {
-    static SslCertificateGenerator singleton = null;
+public class X509Certificate {
     private static final String PROPS_HOURS_BEFORE = "hours.before";
     private static final String PROPS_HOURS_AFTER = "hours.after";
     private static final String SIGNATURE_ALGORITHM = "SHA1withRSA";
     private static final String GROUP_PREFIX = "group:";
 
-    private KeyPair keyPair;
-    private X509Certificate caCert;
+    private static KeyPair keyPair;
+    private static java.security.cert.X509Certificate caCert;
 
-
-    static SslCertificateGenerator getInstance() {
-        if (singleton == null) {
-            singleton = new SslCertificateGenerator();
-        }
-        return singleton;
-    }
-
-    X509Certificate createCert(String user) throws IOException, CertificateParsingException, InvalidKeySpecException, NoSuchAlgorithmException, NamingException, SignatureException, InvalidKeyException, NoSuchProviderException, CertificateEncodingException {
+    static java.security.cert.X509Certificate createCert(String user) throws IOException, CertificateParsingException, InvalidKeySpecException, NoSuchAlgorithmException, NamingException, SignatureException, InvalidKeyException, NoSuchProviderException, CertificateEncodingException {
         final UUID uuid = new UUID();
         final X509V3CertificateGenerator generator = new X509V3CertificateGenerator();
 
@@ -59,6 +50,7 @@ public class SslCertificateGenerator {
         calendar.add(Calendar.HOUR, hoursBefore + hoursAfter);
         generator.setNotAfter(calendar.getTime());
 
+        // Reuse the UUID time as a SN
         generator.setSerialNumber(new BigInteger(new Long(uuid.getTime()).toString()));
 
         generator.addExtension(X509Extensions.AuthorityKeyIdentifier, false,
@@ -67,17 +59,23 @@ public class SslCertificateGenerator {
         generator.addExtension(X509Extensions.SubjectKeyIdentifier, false,
                 new SubjectKeyIdentifierStructure(keyPair.getPublic()));
 
+        // E-mail address as other name (RFC822)
         generator.addExtension(X509Extensions.SubjectAlternativeName, false,
                 new GeneralNames(new GeneralName(GeneralName.rfc822Name, infos.getMail())));
 
-        for (final String group: infos.getGroups()) {
+        // Add all groups as other names
+        for (final String group : infos.getGroups()) {
             generator.addExtension(X509Extensions.SubjectAlternativeName, false,
-                    new GeneralNames(new GeneralName(GeneralName.otherName, GROUP_PREFIX +group)));
+                    new GeneralNames(new GeneralName(GeneralName.otherName, GROUP_PREFIX + group)));
         }
 
+        // Store the UUID
         generator.addExtension(X509Extensions.IssuingDistributionPoint, false,
                 new DEROctetString(uuid.toString().getBytes()));
 
+        // Not a CA
+        generator.addExtension(X509Extensions.BasicConstraints, true, new BasicConstraints(false));
+        
         generator.setIssuerDN(caCert.getSubjectX500Principal());
         generator.setPublicKey(keyPair.getPublic());
         generator.setSignatureAlgorithm(SIGNATURE_ALGORITHM);
@@ -85,6 +83,6 @@ public class SslCertificateGenerator {
         return generator.generate(keyPair.getPrivate(), "BC");
     }
 
-    private SslCertificateGenerator() {
+    private X509Certificate() {
     }
 }
