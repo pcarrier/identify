@@ -8,37 +8,84 @@ import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.X509Extensions;
 import org.bouncycastle.jce.X509Principal;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openssl.PEMReader;
+import org.bouncycastle.openssl.PasswordFinder;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
 import org.bouncycastle.x509.extension.AuthorityKeyIdentifierStructure;
 import org.bouncycastle.x509.extension.SubjectKeyIdentifierStructure;
 
-import javax.naming.NamingException;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.security.*;
-import java.security.cert.CertificateException;
-import java.security.spec.InvalidKeySpecException;
+import java.security.KeyPair;
+import java.security.PrivateKey;
+import java.security.Security;
+import java.security.cert.X509Certificate;
 import java.util.Calendar;
 import java.util.Hashtable;
 import java.util.Vector;
 
-public class X509Certificate {
+public class X509CertificateGenerator {
     private static final String
             PROPS_HOURS_BEFORE = "hours.before",
             PROPS_HOURS_AFTER = "hours.after",
             SIGNATURE_ALGORITHM = "SHA1withRSA",
+            CA_CERT_PATH = "ca.cert.path",
+            CA_KEY_PATH = "ca.cert.path",
             GROUP_PREFIX = "group:";
 
+    /* TODO: initialize */
+    private ConfigProperties props;
+    private X509Certificate caCert;
+    private PrivateKey caPrivateKey;
 
-    /* TODO: initialize that crap */
-    private static java.security.cert.X509Certificate caCert;
-    private static PrivateKey caPrivateKey;
+    public X509CertificateGenerator() throws FileNotFoundException {
+        props = ConfigProperties.getProperties(ConfigProperties.X509);
+        Security.addProvider(new BouncyCastleProvider());
 
-    static java.security.cert.X509Certificate createCert(final String user) throws IOException, CertificateException, InvalidKeySpecException, NoSuchAlgorithmException, NamingException, SignatureException, InvalidKeyException, NoSuchProviderException {
+    }
+
+    private static PrivateKey readPrivateKey throws FileNotFoundException {
+        File caPrivateKeyFile = new File(props.getProperty(CA_KEY_PATH));
+        FileReader caPrivateKeyFileReader = null;
+        caPrivateKeyFileReader = new FileReader(caPrivateKeyFile);
+        PEMReader caPrivateKeyReader = new PEMReader(caPrivateKeyFile, EmptyPasswordFinder.getInstance());
+        try {
+            KeyPair key = (KeyPair) caPrivateKeyReader.readObject();
+            return key.getPrivate();
+        } finally {
+            caPrivateKeyReader.close();
+            caPrivateKeyFileReader.close();
+        }
+    }
+
+    public static java.security.cert.X509Certificate createCert(final String user) {
+        File caPrivateKeyFile = new File(props.getProperty(CA_KEY_PATH));
+        FileReader caPrivateKeyFileReader = new FileReader(caPrivateKeyFile);
+        PEMReader caPrivateKeyReader = new PEMReader(caPrivateKeyFile, EmptyPasswordFinder.getInstance());
+        try {
+            KeyPair key = (KeyPair) caPrivateKeyReader.readObject();
+            return key.getPrivate();
+        } finally {
+            caPrivateKeyReader.close();
+            caPrivateKeyFileReader.close();
+        }
+
+        File caCertFile = new File(props.getProperty(CA_CERT_PATH));
+        FileReader caCertFileReader = new FileReader(caCertFile);
+        try {
+            return (KeyPair) r.readObject();
+        } catch (IOException ex) {
+            throw new IOException("The private key could not be decrypted", ex);
+        } finally {
+            r.close();
+            fileReader.close();
+        }
+
         final UUID uuid = new UUID();
         final X509V3CertificateGenerator generator = new X509V3CertificateGenerator();
-
-        final ConfigProperties props = ConfigProperties.getProperties(ConfigProperties.X509);
 
         final CertInfo infos = CertInfo.fromLDAP(user);
         final SshPublicKey sshKey = SshPublicKey.fromRepo(user);
@@ -99,8 +146,15 @@ public class X509Certificate {
         return cert;
     }
 
-    private X509Certificate() {
-        super();
-        Security.addProvider(new BouncyCastleProvider());
+    private static class EmptyPasswordFinder implements PasswordFinder {
+        private static EmptyPasswordFinder singleton = new EmptyPasswordFinder();
+
+        public char[] getPassword() {
+            return new char[0];
+        }
+
+        public static EmptyPasswordFinder getInstance() {
+            return singleton;
+        }
     }
 }
