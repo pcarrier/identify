@@ -1,21 +1,31 @@
 package sslify;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.X509Certificate;
-import org.apache.commons.codec.binary.Base64;
 import org.bouncycastle.openssl.PEMWriter;
 
-public class X509Certificates {
-    static String toPEM(X509Certificate cert) throws IOException {
-        StringWriter stringWriter = new StringWriter();
-        PEMWriter pemWriter = new PEMWriter(stringWriter);
-        pemWriter.writeObject(cert);
-        pemWriter.close();
-        stringWriter.flush();
-        String result = stringWriter.toString();
-        stringWriter.close();
-        return result;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.security.cert.X509Certificate;
+
+class X509Certificates {
+    static String toPEM(final X509Certificate cert) throws IOException {
+        StringWriter stringWriter = null;
+        PEMWriter pemWriter = null;
+        String result = null;
+
+        try {
+            stringWriter = new StringWriter();
+            pemWriter = new PEMWriter(stringWriter);
+            pemWriter.writeObject(cert);
+            stringWriter.flush();
+            result = stringWriter.toString();
+        } finally {
+            if (pemWriter != null) {
+                pemWriter.close();
+            }
+            if (stringWriter != null) {
+                stringWriter.close();
+            }
+            return result;
+        }
     }
 }

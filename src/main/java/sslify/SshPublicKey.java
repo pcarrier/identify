@@ -29,8 +29,6 @@ public class SshPublicKey {
             super(s);
         }
 
-        private UnreadableKey() {
-        }
     }
 
     enum Type {RSA}

@@ -9,9 +9,10 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Formatter;
 
-public class FSDataSource {
+class FSDataSource {
     private static FSDataSource singleton = null;
     private static final String PROP_PATH = "repo.keypath";
+    private static final String CHARSET = "UTF-8";
 
 
     String getSshPublicKeyText(final String name) throws IOException {
@@ -19,7 +20,7 @@ public class FSDataSource {
         final ConfigProperties props = ConfigProperties.getProperties(ConfigProperties.REPO);
         final String path = formatter.format(props.getProperty(PROP_PATH), name).toString();
         final File keyFile = new File(path);
-        return Files.readFirstLine(keyFile, Charset.forName("UTF-8"));
+        return Files.readFirstLine(keyFile, Charset.forName(CHARSET));
     }
 
     SshPublicKey getSshPublicKey(final String name) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {

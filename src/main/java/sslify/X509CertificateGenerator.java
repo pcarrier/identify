@@ -3,7 +3,6 @@ package sslify;
 import com.eaio.uuid.UUID;
 import com.google.common.base.Joiner;
 import org.bouncycastle.asn1.DERObjectIdentifier;
-import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.X509Extensions;
 import org.bouncycastle.jce.X509Principal;
@@ -20,7 +19,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.*;
-import java.security.cert.*;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Calendar;
 import java.util.Hashtable;
@@ -34,11 +34,10 @@ public class X509CertificateGenerator {
             PROPS_HOURS_AFTER = "hours.after",
             SIGNATURE_ALGORITHM = "SHA1withRSA",
             CA_CERT_PATH = "ca.cert.path",
-            CA_KEY_PATH = "ca.key.path";
-            // GROUP_PREFIX = "group:";
+            CA_KEY_PATH = "ca.key.path",
+            BC_PROVIDER = "BC";
 
-    /* TODO: initialize */
-    private ConfigProperties props;
+    private final ConfigProperties props;
     private X509Certificate caCert;
     private PrivateKey caPrivateKey;
 
@@ -46,7 +45,7 @@ public class X509CertificateGenerator {
         Security.addProvider(new BouncyCastleProvider());
     }
 
-    public X509CertificateGenerator() throws IOException {
+    private X509CertificateGenerator() throws IOException {
         props = ConfigProperties.getProperties(ConfigProperties.X509);
         caPrivateKey = readCAPrivateKey();
         caCert = readCACert();
@@ -54,27 +53,43 @@ public class X509CertificateGenerator {
 
     private PrivateKey readCAPrivateKey() throws IOException {
         final File caPrivateKeyFile = new File(props.getProperty(CA_KEY_PATH));
-        final FileReader caPrivateKeyFileReader = new FileReader(caPrivateKeyFile);
-        final PEMReader caPrivateKeyReader = new PEMReader(caPrivateKeyFileReader, EmptyPasswordFinder.getInstance());
+        FileReader caPrivateKeyFileReader = null;
+        PEMReader caPrivateKeyReader = null;
 
-        KeyPair keypair = (KeyPair) caPrivateKeyReader.readObject();
-        PrivateKey pkey = keypair.getPrivate();
-
-        caPrivateKeyReader.close();
-        caPrivateKeyFileReader.close();
-        return pkey;
+        try {
+            caPrivateKeyFileReader = new FileReader(caPrivateKeyFile);
+            caPrivateKeyReader = new PEMReader(caPrivateKeyFileReader, EmptyPasswordFinder.getInstance());
+            final KeyPair keypair = (KeyPair) caPrivateKeyReader.readObject();
+            final PrivateKey pkey = keypair.getPrivate();
+            return pkey;
+        } finally {
+            if (caPrivateKeyReader != null) {
+                caPrivateKeyReader.close();
+            }
+            if (caPrivateKeyFileReader != null) {
+                caPrivateKeyFileReader.close();
+            }
+        }
     }
 
     private X509Certificate readCACert() throws IOException {
         final File caCertFile = new File(props.getProperty(CA_CERT_PATH));
-        final FileReader caCertFileReader = new FileReader(caCertFile);
-        final PEMReader caCertReader = new PEMReader(caCertFileReader, EmptyPasswordFinder.getInstance());
-        X509Certificate cert = (X509Certificate) caCertReader.readObject();
+        ;
+        FileReader caCertFileReader = null;
+        PEMReader caCertReader = null;
+        X509Certificate cert = null;
 
-        caCertReader.close();
-        caCertFileReader.close();
-
-        return cert;
+        try {
+            caCertFileReader = new FileReader(caCertFile);
+            caCertReader = new PEMReader(caCertFileReader, EmptyPasswordFinder.getInstance());
+            cert = (X509Certificate) caCertReader.readObject();
+        } finally {
+            if (caCertReader != null)
+                caCertReader.close();
+            if (caCertFileReader != null)
+                caCertFileReader.close();
+            return cert;
+        }
     }
 
     public java.security.cert.X509Certificate createCert(final String user) throws IOException, NamingException, InvalidKeySpecException, NoSuchAlgorithmException, CertificateException, SignatureException, InvalidKeyException, NoSuchProviderException {
@@ -132,7 +147,7 @@ public class X509CertificateGenerator {
         generator.setPublicKey(sshKey.getKey());
         generator.setSignatureAlgorithm(SIGNATURE_ALGORITHM);
 
-        final java.security.cert.X509Certificate cert = generator.generate(caPrivateKey, "BC");
+        final java.security.cert.X509Certificate cert = generator.generate(caPrivateKey, BC_PROVIDER);
 
         cert.checkValidity();
         cert.verify(caCert.getPublicKey());
@@ -141,7 +156,7 @@ public class X509CertificateGenerator {
     }
 
     private static class EmptyPasswordFinder implements PasswordFinder {
-        private static EmptyPasswordFinder singleton = new EmptyPasswordFinder();
+        private static final EmptyPasswordFinder singleton = new EmptyPasswordFinder();
 
         public char[] getPassword() {
             return new char[0];

@@ -11,13 +11,13 @@ import java.util.Formatter;
 import java.util.Hashtable;
 
 class LDAPDataSource extends InitialDirContext {
-    static class MissingDetailsException extends NamingException {
+    private static class MissingDetailsException extends NamingException {
     }
 
-    static class MissingUserException extends NamingException {
+    private static class MissingUserException extends NamingException {
     }
 
-    static class TooManyUsersException extends NamingException {
+    private static class TooManyUsersException extends NamingException {
     }
 
     private static LDAPDataSource singleton = null;
@@ -78,8 +78,8 @@ class LDAPDataSource extends InitialDirContext {
 
         final NamingEnumeration<SearchResult> groups_results = this.search(props.getProperty(PROP_BASE_DN_GROUPS), groups_query, groups_controls);
         while (groups_results.hasMore()) {
-            SearchResult group = groups_results.next();
-            String groupCn = group.getAttributes().get("cn").get().toString();
+            final SearchResult group = groups_results.next();
+            final String groupCn = group.getAttributes().get("cn").get().toString();
             groups.add(groupCn);
         }
 
