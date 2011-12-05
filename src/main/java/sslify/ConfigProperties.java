@@ -1,7 +1,6 @@
 package sslify;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -16,12 +15,11 @@ public class ConfigProperties extends Properties {
             LDAP = "ldap",
             REPO = "repo",
             X509 = "x509";
+    private static final String CONFIGPATH = "sslify.configpath";
 
     private ConfigProperties() {
         super();
     }
-
-    ;
 
     private static final HashMap<String, ConfigProperties> loaded = new HashMap<String, ConfigProperties>();
 
@@ -31,16 +29,29 @@ public class ConfigProperties extends Properties {
         } else {
             final ConfigProperties props = new ConfigProperties();
             final String fullName = name + ".conf.properties";
-            final InputStream inputStream = ConfigProperties.class.getClassLoader().getResourceAsStream(fullName);
-            if (inputStream == null)
-                throw new ConfigLoadingException(fullName);
+
             try {
+                InputStream inputStream = getInputStream(fullName);
                 props.load(inputStream);
+                inputStream.close();
             } catch (IOException e) {
                 throw new ConfigLoadingException(fullName);
             }
-            loaded.put(name, props);
+            finally {
+                loaded.put(name, props);
+            }
             return props;
         }
+    }
+
+    static private InputStream getInputStream(String name) throws FileNotFoundException {
+        final String confPath = System.getProperty(CONFIGPATH);
+        InputStream stream;
+        if(confPath == null) {
+            stream = ConfigProperties.class.getClassLoader().getResourceAsStream(name);
+        } else {
+            stream = new FileInputStream(new File(confPath, name));
+        }
+        return stream;
     }
 }

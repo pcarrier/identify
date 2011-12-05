@@ -44,7 +44,8 @@ class LDAPDataSource extends InitialDirContext {
 
     CertInfo getInfos(final String name) throws NamingException {
         final ConfigProperties props = ConfigProperties.getProperties(ConfigProperties.LDAP);
-        final Formatter formatter = new Formatter();
+        final Formatter userFormatter = new Formatter();
+        final Formatter groupFormatter = new Formatter();
 
         final String cn, uid, mail;
         final ArrayList<String> groups = new ArrayList<String>();
@@ -57,8 +58,8 @@ class LDAPDataSource extends InitialDirContext {
         groups_controls.setSearchScope(SearchControls.SUBTREE_SCOPE);
         groups_controls.setReturningAttributes(GROUP_ATTRIBUTES);
 
-        final String user_query = formatter.format(props.getProperty(PROP_QUERIES_USER), name).toString();
-        final String groups_query = formatter.format(props.getProperty(PROP_QUERIES_GROUPS), name).toString();
+        final String user_query = userFormatter.format(props.getProperty(PROP_QUERIES_USER), name).toString();
+        final String groups_query = groupFormatter.format(props.getProperty(PROP_QUERIES_GROUPS), name).toString();
 
         final NamingEnumeration<SearchResult> user_results = this.search(props.getProperty(PROP_BASE_DN_USER), user_query, user_controls);
         if (!user_results.hasMore())
@@ -77,7 +78,9 @@ class LDAPDataSource extends InitialDirContext {
 
         final NamingEnumeration<SearchResult> groups_results = this.search(props.getProperty(PROP_BASE_DN_GROUPS), groups_query, groups_controls);
         while (groups_results.hasMore()) {
-            groups.add(groups_results.next().getAttributes().get("cn").get().toString());
+            SearchResult group = groups_results.next();
+            String groupCn = group.getAttributes().get("cn").get().toString();
+            groups.add(groupCn);
         }
 
         return new CertInfo(cn, uid, mail, groups);

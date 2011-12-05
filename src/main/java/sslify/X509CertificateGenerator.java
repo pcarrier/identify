@@ -14,76 +14,70 @@ import org.bouncycastle.x509.X509V3CertificateGenerator;
 import org.bouncycastle.x509.extension.AuthorityKeyIdentifierStructure;
 import org.bouncycastle.x509.extension.SubjectKeyIdentifierStructure;
 
+import javax.naming.NamingException;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.security.KeyPair;
-import java.security.PrivateKey;
-import java.security.Security;
-import java.security.cert.X509Certificate;
+import java.security.*;
+import java.security.cert.*;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Calendar;
 import java.util.Hashtable;
 import java.util.Vector;
 
 public class X509CertificateGenerator {
+    private static X509CertificateGenerator singleton = null;
+
     private static final String
             PROPS_HOURS_BEFORE = "hours.before",
             PROPS_HOURS_AFTER = "hours.after",
             SIGNATURE_ALGORITHM = "SHA1withRSA",
             CA_CERT_PATH = "ca.cert.path",
-            CA_KEY_PATH = "ca.cert.path",
-            GROUP_PREFIX = "group:";
+            CA_KEY_PATH = "ca.key.path";
+            // GROUP_PREFIX = "group:";
 
     /* TODO: initialize */
     private ConfigProperties props;
     private X509Certificate caCert;
     private PrivateKey caPrivateKey;
 
-    public X509CertificateGenerator() throws FileNotFoundException {
-        props = ConfigProperties.getProperties(ConfigProperties.X509);
+    static {
         Security.addProvider(new BouncyCastleProvider());
-
     }
 
-    private static PrivateKey readPrivateKey throws FileNotFoundException {
-        File caPrivateKeyFile = new File(props.getProperty(CA_KEY_PATH));
-        FileReader caPrivateKeyFileReader = null;
-        caPrivateKeyFileReader = new FileReader(caPrivateKeyFile);
-        PEMReader caPrivateKeyReader = new PEMReader(caPrivateKeyFile, EmptyPasswordFinder.getInstance());
-        try {
-            KeyPair key = (KeyPair) caPrivateKeyReader.readObject();
-            return key.getPrivate();
-        } finally {
-            caPrivateKeyReader.close();
-            caPrivateKeyFileReader.close();
-        }
+    public X509CertificateGenerator() throws IOException {
+        props = ConfigProperties.getProperties(ConfigProperties.X509);
+        caPrivateKey = readCAPrivateKey();
+        caCert = readCACert();
     }
 
-    public static java.security.cert.X509Certificate createCert(final String user) {
-        File caPrivateKeyFile = new File(props.getProperty(CA_KEY_PATH));
-        FileReader caPrivateKeyFileReader = new FileReader(caPrivateKeyFile);
-        PEMReader caPrivateKeyReader = new PEMReader(caPrivateKeyFile, EmptyPasswordFinder.getInstance());
-        try {
-            KeyPair key = (KeyPair) caPrivateKeyReader.readObject();
-            return key.getPrivate();
-        } finally {
-            caPrivateKeyReader.close();
-            caPrivateKeyFileReader.close();
-        }
+    private PrivateKey readCAPrivateKey() throws IOException {
+        final File caPrivateKeyFile = new File(props.getProperty(CA_KEY_PATH));
+        final FileReader caPrivateKeyFileReader = new FileReader(caPrivateKeyFile);
+        final PEMReader caPrivateKeyReader = new PEMReader(caPrivateKeyFileReader, EmptyPasswordFinder.getInstance());
 
-        File caCertFile = new File(props.getProperty(CA_CERT_PATH));
-        FileReader caCertFileReader = new FileReader(caCertFile);
-        try {
-            return (KeyPair) r.readObject();
-        } catch (IOException ex) {
-            throw new IOException("The private key could not be decrypted", ex);
-        } finally {
-            r.close();
-            fileReader.close();
-        }
+        KeyPair keypair = (KeyPair) caPrivateKeyReader.readObject();
+        PrivateKey pkey = keypair.getPrivate();
 
+        caPrivateKeyReader.close();
+        caPrivateKeyFileReader.close();
+        return pkey;
+    }
+
+    private X509Certificate readCACert() throws IOException {
+        final File caCertFile = new File(props.getProperty(CA_CERT_PATH));
+        final FileReader caCertFileReader = new FileReader(caCertFile);
+        final PEMReader caCertReader = new PEMReader(caCertFileReader, EmptyPasswordFinder.getInstance());
+        X509Certificate cert = (X509Certificate) caCertReader.readObject();
+
+        caCertReader.close();
+        caCertFileReader.close();
+
+        return cert;
+    }
+
+    public java.security.cert.X509Certificate createCert(final String user) throws IOException, NamingException, InvalidKeySpecException, NoSuchAlgorithmException, CertificateException, SignatureException, InvalidKeyException, NoSuchProviderException {
         final UUID uuid = new UUID();
         final X509V3CertificateGenerator generator = new X509V3CertificateGenerator();
 
@@ -118,7 +112,7 @@ public class X509CertificateGenerator {
         generator.setNotAfter(calendar.getTime());
 
         // Reuse the UUID time as a SN
-        generator.setSerialNumber(new BigInteger(new Long(uuid.getTime()).toString()));
+        generator.setSerialNumber(new BigInteger(new Long(uuid.getTime()).toString()).abs());
 
         generator.addExtension(X509Extensions.AuthorityKeyIdentifier, false,
                 new AuthorityKeyIdentifierStructure(caCert));
@@ -128,7 +122,7 @@ public class X509CertificateGenerator {
 
         // Store the UUID
         generator.addExtension(X509Extensions.IssuingDistributionPoint, false,
-                new DEROctetString(uuid.toString().getBytes()));
+                uuid.toString().getBytes());
 
         // Not a CA
         generator.addExtension(X509Extensions.BasicConstraints, true,
@@ -156,5 +150,12 @@ public class X509CertificateGenerator {
         public static EmptyPasswordFinder getInstance() {
             return singleton;
         }
+    }
+
+    public static X509CertificateGenerator getInstance() throws IOException {
+        if (singleton == null) {
+            singleton = new X509CertificateGenerator();
+        }
+        return singleton;
     }
 }

@@ -55,8 +55,8 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>so.poj.sslify.CLI</mainClass>
-                            <packageName>so.poj.sslify</packageName>
+                            <mainClass>sslify.CLI</mainClass>
+                            <packageName>sslify</packageName>
                         </manifest>
                     </archive>
                 </configuration>
@@ -80,7 +80,21 @@
                     </execution>
                 </executions>
                 <configuration>
+                <!-- TODO: reintroduce minimize
+                    Causes some useful code to disappear from BouncyCastle, causing the annoying:
+                    java.io.IOException: problem parsing cert: java.security.cert.CertificateException: X.509 not found
                     <minimizeJar>true</minimizeJar>
+                -->
+                    <filters>
+                        <filter>
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <exclude>META-INF/*.SF</exclude>
+                                <exclude>META-INF/*.DSA</exclude>
+                                <exclude>META-INF/*.RSA</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
                 </configuration>
             </plugin>
         </plugins>
