@@ -1,0 +1,3 @@
+- Clean interfaces
+- Remove stupid cross-dependencies, use dependency injection (guice)
+- Turn into a web service
