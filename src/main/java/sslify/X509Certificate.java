@@ -1,7 +1,6 @@
 package sslify;
 
 import lombok.Data;
-import lombok.Delegate;
 import org.bouncycastle.openssl.PEMWriter;
 import org.jetbrains.annotations.NotNull;
 
@@ -11,7 +10,6 @@ import java.io.StringWriter;
 
 @Data
 public class X509Certificate {
-    @Delegate
     private final java.security.cert.X509Certificate cert;
 
     @NotNull
@@ -23,7 +21,8 @@ public class X509Certificate {
         try {
             stringWriter = new StringWriter();
             pemWriter = new PEMWriter(stringWriter);
-            pemWriter.writeObject(this);
+            pemWriter.writeObject(this.cert);
+            pemWriter.flush();
             stringWriter.flush();
             result = stringWriter.toString();
         } finally {

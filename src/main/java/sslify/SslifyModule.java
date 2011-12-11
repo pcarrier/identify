@@ -12,5 +12,7 @@ public class SslifyModule extends AbstractModule {
                 .to(SshPublicKeyFactoryFSImpl.class);
         bind(X509CertificateFactory.class)
                 .to(X509CertificateFactoryGeneratorImpl.class);
+        bind(HttpServer.class)
+                .to(HttpServerImpl.class);
     }
 }

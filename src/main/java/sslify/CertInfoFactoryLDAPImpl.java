@@ -17,11 +17,10 @@ import java.util.Formatter;
 
 @Singleton
 public class CertInfoFactoryLDAPImpl implements CertInfoFactory {
-    private static final String
-            PROP_BASE_DN_USER = "queries.basedn.user",
-            PROP_QUERIES_USER = "queries.filter.user",
-            PROP_BASE_DN_GROUPS = "queries.basedn.groups",
-            PROP_QUERIES_GROUPS = "queries.filter.groups";
+    private static final String PROP_BASE_DN_USER = "queries.basedn.user";
+    private static final String PROP_QUERIES_USER = "queries.filter.user";
+    private static final String PROP_BASE_DN_GROUPS = "queries.basedn.groups";
+    private static final String PROP_QUERIES_GROUPS = "queries.filter.groups";
     private static final String[]
             USER_ATTRIBUTES = {"cn", "uid", "mail"};
     private static final String[] GROUP_ATTRIBUTES = {"cn"};
@@ -92,12 +91,12 @@ public class CertInfoFactoryLDAPImpl implements CertInfoFactory {
                 groups.toArray(new String[groups.size()]));
     }
 
-    private static class MissingDetailsException extends NamingException {
+    public static class MissingDetailsException extends NamingException {
     }
 
-    private static class MissingUserException extends NamingException {
+    public static class MissingUserException extends NamingException {
     }
 
-    private static class TooManyUsersException extends NamingException {
+    public static class TooManyUsersException extends NamingException {
     }
 }

@@ -43,6 +43,9 @@ public class SshPublicKey {
     }
 
     public static class SshPublicKeyLoadingException extends RuntimeException {
+        public SshPublicKeyLoadingException(Exception e) {
+            super(e);
+        }
     }
 
     public SshPublicKey(final String description) throws SshPublicKeyLoadingException {
@@ -65,7 +68,7 @@ public class SshPublicKey {
         try {
             sha1Digester = MessageDigest.getInstance("SHA-1");
         } catch (NoSuchAlgorithmException e) {
-            throw new SshPublicKeyLoadingException();
+            throw new SshPublicKeyLoadingException(e);
         }
         sha1Digester.update(decodedKey);
         fingerprint = new BigInteger(sha1Digester.digest()).toString(16);
@@ -82,9 +85,9 @@ public class SshPublicKey {
             try {
                 key = KeyFactory.getInstance("RSA").generatePublic(new RSAPublicKeySpec(mod, exp));
             } catch (InvalidKeySpecException e) {
-                throw new SshPublicKeyLoadingException();
+                throw new SshPublicKeyLoadingException(e);
             } catch (NoSuchAlgorithmException e) {
-                throw new SshPublicKeyLoadingException();
+                throw new SshPublicKeyLoadingException(e);
             }
         }
     }

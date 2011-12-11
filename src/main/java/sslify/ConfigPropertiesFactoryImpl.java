@@ -20,7 +20,7 @@ public class ConfigPropertiesFactoryImpl implements ConfigPropertiesFactory {
         DomainMapping.put(ConfigProperties.Domains.LDAP, "ldap");
         DomainMapping.put(ConfigProperties.Domains.REPOSITORY, "repo");
         DomainMapping.put(ConfigProperties.Domains.X509, "x509");
-        DomainMapping.put(ConfigProperties.Domains.SERVER, "server");
+        DomainMapping.put(ConfigProperties.Domains.HTTP_SERVER, "http.server");
     }
 
     private static final Map<ConfigProperties.Domains, ConfigProperties> loaded =
@@ -28,8 +28,8 @@ public class ConfigPropertiesFactoryImpl implements ConfigPropertiesFactory {
 
     @NotNull
     @Override
-    public ConfigProperties get(@NonNull ConfigProperties.Domains domain) throws ConfigProperties.ConfigLoadingException {
-        // Return memoized value if available
+    public synchronized ConfigProperties get(@NonNull ConfigProperties.Domains domain)
+            throws ConfigProperties.ConfigLoadingException {
         if (loaded.containsKey(domain))
             return loaded.get(domain);
 

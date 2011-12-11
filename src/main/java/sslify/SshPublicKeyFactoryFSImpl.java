@@ -17,7 +17,7 @@ public class SshPublicKeyFactoryFSImpl implements SshPublicKeyFactory {
     private static final String CHARSET = "UTF-8";
     private final ConfigProperties configProperties;
 
-    String getSshPublicKeyText(final String user)
+    String getSshPublicKeyText(@NonNull final String user)
             throws SshPublicKey.SshPublicKeyLoadingException {
         final Formatter formatter = new Formatter();
         final String path = formatter.format(configProperties.getProperty(PROP_PATH), user).toString();
@@ -25,13 +25,12 @@ public class SshPublicKeyFactoryFSImpl implements SshPublicKeyFactory {
         try {
             return Files.readFirstLine(keyFile, Charset.forName(CHARSET));
         } catch (IOException e) {
-            throw new SshPublicKey.SshPublicKeyLoadingException();
+            throw new SshPublicKey.SshPublicKeyLoadingException(e);
         }
     }
 
     @NotNull
-    @Inject
-    public SshPublicKey get(@NonNull String user)
+    public SshPublicKey get(@NonNull final String user)
             throws ConfigProperties.ConfigLoadingException, SshPublicKey.SshPublicKeyLoadingException {
         return new SshPublicKey(getSshPublicKeyText(user));
     }

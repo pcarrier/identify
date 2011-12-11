@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.InetAddress;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.PrivateKey;
@@ -43,6 +44,7 @@ public class X509CertificateFactoryGeneratorImpl implements X509CertificateFacto
     private final ConfigProperties props;
     private final SshPublicKeyFactory sshPublicKeyFactory;
     private final CertInfoFactory certInfoFactory;
+    private final String hostname;
     private java.security.cert.X509Certificate caCert;
     private PrivateKey caPrivateKey;
 
@@ -57,6 +59,7 @@ public class X509CertificateFactoryGeneratorImpl implements X509CertificateFacto
         this.props = configPropertiesFactory.get(ConfigProperties.Domains.X509);
         this.sshPublicKeyFactory = sshPublicKeyFactory;
         this.certInfoFactory = certInfoFactory;
+        this.hostname = InetAddress.getLocalHost().getHostName();
         caPrivateKey = readCAPrivateKey();
         caCert = readCACert();
     }
@@ -133,7 +136,7 @@ public class X509CertificateFactoryGeneratorImpl implements X509CertificateFacto
         generator.setNotAfter(calendar.getTime());
 
         // Reuse the UUID time as a SN
-        generator.setSerialNumber(new BigInteger(Long.toString(uuid.getTime())).abs());
+        generator.setSerialNumber(BigInteger.valueOf(uuid.getTime()).abs());
 
         generator.addExtension(X509Extensions.AuthorityKeyIdentifier, false,
                 new AuthorityKeyIdentifierStructure(caCert));
@@ -141,9 +144,11 @@ public class X509CertificateFactoryGeneratorImpl implements X509CertificateFacto
         generator.addExtension(X509Extensions.SubjectKeyIdentifier, false,
                 new SubjectKeyIdentifierStructure(sshKey.getKey()));
 
-        // Store the UUID
+        StringBuilder hostnameAndUUIDBuilder = new StringBuilder(hostname);
+        hostnameAndUUIDBuilder.append(':');
+        hostnameAndUUIDBuilder.append(uuid.toString());
         generator.addExtension(X509Extensions.IssuingDistributionPoint, false,
-                uuid.toString().getBytes());
+                hostnameAndUUIDBuilder.toString().getBytes());
 
         // Not a CA
         generator.addExtension(X509Extensions.BasicConstraints, true,
