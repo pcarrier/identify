@@ -1,47 +1,40 @@
-package sslify;
+package sslify.run;
 
-import java.security.cert.X509Certificate;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import sslify.SslifyModule;
+import sslify.models.CertInfoFactory;
+import sslify.models.SshPublicKeyFactory;
+import sslify.models.X509CertificateFactory;
 
-public class CLI {
+public class TestCLI {
     private static final String INVALID_SYNTAX_ERROR = "We expect a command followed by usernames as arguments.\n" +
             "Available commands: ldap, sshtext, sshkey, sslcert";
-    private static final String
-            LDAP_COMMAND = "ldap",
-            SSH_TEXT_COMMAND = "sshtext",
-            SSH_KEY_COMMAND = "sshkey",
-            SSL_CERT_COMMAND = "sslcert";
+    private static final String LDAP_COMMAND = "ldap";
+    private static final String SSH_KEY_COMMAND = "sshkey";
+    private static final String SSL_CERT_COMMAND = "sslcert";
 
     public static void main(final String[] args) {
+        final Injector injector = Guice.createInjector(new SslifyModule());
         if (args.length < 2) {
             System.err.println(INVALID_SYNTAX_ERROR);
             System.exit(1);
         } else if (args[0].equals(LDAP_COMMAND)) {
             loopOverArguments(args, new Runnable() {
-                @Override
                 public void exec(final String name) throws Exception {
-                    System.out.println(CertInfo.fromLDAP(name).toString());
-                }
-            });
-        } else if (args[0].equals(SSH_TEXT_COMMAND)) {
-            loopOverArguments(args, new Runnable() {
-                @Override
-                public void exec(final String name) throws Exception {
-                    System.out.println(FSDataSource.getInstance().getSshPublicKeyText(name).toString());
+                    System.out.println(injector.getInstance(CertInfoFactory.class).get(name).toString());
                 }
             });
         } else if (args[0].equals(SSH_KEY_COMMAND)) {
             loopOverArguments(args, new Runnable() {
-                @Override
                 public void exec(final String name) throws Exception {
-                    System.out.println(FSDataSource.getInstance().getSshPublicKey(name).toString());
+                    System.out.println(injector.getInstance(SshPublicKeyFactory.class).get(name).toString());
                 }
             });
         } else if (args[0].equals(SSL_CERT_COMMAND)) {
             loopOverArguments(args, new Runnable() {
-                @Override
                 public void exec(final String name) throws Exception {
-                    final X509Certificate cert = X509CertificateGenerator.getInstance().createCert(name);
-                    System.out.println(X509Certificates.toPEM(cert));
+                    System.out.println(injector.getInstance(X509CertificateFactory.class).get(name).toPEM());
                 }
             });
         }

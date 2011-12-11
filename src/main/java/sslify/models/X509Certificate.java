@@ -1,13 +1,21 @@
-package sslify;
+package sslify.models;
 
+import lombok.Data;
+import lombok.Delegate;
 import org.bouncycastle.openssl.PEMWriter;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.security.cert.X509Certificate;
 
-class X509Certificates {
-    static String toPEM(final X509Certificate cert) throws IOException {
+
+@Data
+public class X509Certificate {
+    @Delegate
+    private final java.security.cert.X509Certificate cert;
+
+    @NotNull
+    public String toPEM() throws IOException {
         StringWriter stringWriter = null;
         PEMWriter pemWriter = null;
         String result = null;
@@ -15,17 +23,15 @@ class X509Certificates {
         try {
             stringWriter = new StringWriter();
             pemWriter = new PEMWriter(stringWriter);
-            pemWriter.writeObject(cert);
+            pemWriter.writeObject(this);
             stringWriter.flush();
             result = stringWriter.toString();
         } finally {
-            if (pemWriter != null) {
+            if (pemWriter != null)
                 pemWriter.close();
-            }
-            if (stringWriter != null) {
+            if (stringWriter != null)
                 stringWriter.close();
-            }
-            return result;
         }
+        return result;
     }
 }

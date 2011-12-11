@@ -1,14 +1,13 @@
-package sslify;
+package sslify.models;
 
 import com.google.common.base.CharMatcher;
-import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
+import lombok.Data;
 import org.apache.commons.codec.binary.Base64;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.security.KeyFactory;
 import java.security.MessageDigest;
@@ -17,6 +16,7 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPublicKeySpec;
 
+@Data
 public class SshPublicKey {
     private static final String NO_COMMENT_AVAILABLE = "unavailable";
     private static final String SSH_RSA_PREFIX = "ssh-rsa";
@@ -38,23 +38,6 @@ public class SshPublicKey {
     private String comment;
     private String fingerprint;
 
-    public Type getType() {
-        return type;
-    }
-
-    public PublicKey getKey() {
-        return key;
-    }
-
-    public String getComment() {
-        return comment;
-    }
-
-    @Override
-    public String toString() {
-        return Objects.toStringHelper(this).add("type", type).add("fingerprint", fingerprint).add("comment", comment).toString();
-    }
-
     private static BigInteger readMPInt(final ByteArrayDataInput source) {
         final int length = source.readInt();
         final byte[] dest = new byte[length];
@@ -69,7 +52,7 @@ public class SshPublicKey {
         return new String(dest);
     }
 
-    public SshPublicKey(final String description) throws InvalidKeySpecException, NoSuchAlgorithmException, UnreadableKey {
+    public SshPublicKey(final String description) throws SshPublicKeyLoadingException {
         final String[] parts = Iterables.toArray(Splitter.on(CharMatcher.JAVA_WHITESPACE).split(description), String.class);
         final String encodedKey;
 
@@ -85,7 +68,12 @@ public class SshPublicKey {
 
         final byte[] decodedKey = Base64.decodeBase64(encodedKey);
 
-        final MessageDigest sha1Digester = MessageDigest.getInstance("SHA-1");
+        final MessageDigest sha1Digester;
+        try {
+            sha1Digester = MessageDigest.getInstance("SHA-1");
+        } catch (NoSuchAlgorithmException e) {
+            throw new SshPublicKeyLoadingException();
+        }
         sha1Digester.update(decodedKey);
         fingerprint = new BigInteger(sha1Digester.digest()).toString(16);
 
@@ -98,11 +86,16 @@ public class SshPublicKey {
             type = Type.RSA;
             final BigInteger exp = readMPInt(keyInput);
             final BigInteger mod = readMPInt(keyInput);
-            key = KeyFactory.getInstance("RSA").generatePublic(new RSAPublicKeySpec(mod, exp));
+            try {
+                key = KeyFactory.getInstance("RSA").generatePublic(new RSAPublicKeySpec(mod, exp));
+            } catch (InvalidKeySpecException e) {
+                throw new SshPublicKeyLoadingException();
+            } catch (NoSuchAlgorithmException e) {
+                throw new SshPublicKeyLoadingException();
+            }
         }
     }
 
-    static SshPublicKey fromRepo(final String name) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
-        return FSDataSource.getInstance().getSshPublicKey(name);
+    public static class SshPublicKeyLoadingException extends RuntimeException {
     }
 }

@@ -1,7 +1,10 @@
-package sslify;
+package sslify.factories;
 
 import com.eaio.uuid.UUID;
 import com.google.common.base.Joiner;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import lombok.NonNull;
 import org.bouncycastle.asn1.DERObjectIdentifier;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.X509Extensions;
@@ -12,23 +15,24 @@ import org.bouncycastle.openssl.PasswordFinder;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
 import org.bouncycastle.x509.extension.AuthorityKeyIdentifierStructure;
 import org.bouncycastle.x509.extension.SubjectKeyIdentifierStructure;
+import org.jetbrains.annotations.NotNull;
+import sslify.models.*;
 
 import javax.naming.NamingException;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.security.*;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.security.spec.InvalidKeySpecException;
+import java.security.GeneralSecurityException;
+import java.security.KeyPair;
+import java.security.PrivateKey;
+import java.security.Security;
 import java.util.Calendar;
 import java.util.Hashtable;
 import java.util.Vector;
 
-public class X509CertificateGenerator {
-    private static X509CertificateGenerator singleton = null;
-
+@Singleton
+public class X509CertificateGenerator implements X509CertificateFactory, PasswordFinder {
     private static final String
             PROPS_HOURS_BEFORE = "hours.before",
             PROPS_HOURS_AFTER = "hours.after",
@@ -38,15 +42,22 @@ public class X509CertificateGenerator {
             BC_PROVIDER = "BC";
 
     private final ConfigProperties props;
-    private X509Certificate caCert;
+    private final SshPublicKeyFactory sshPublicKeyFactory;
+    private final CertInfoFactory certInfoFactory;
+    private java.security.cert.X509Certificate caCert;
     private PrivateKey caPrivateKey;
 
     static {
         Security.addProvider(new BouncyCastleProvider());
     }
 
-    private X509CertificateGenerator() throws IOException {
-        props = ConfigProperties.getProperties(ConfigProperties.X509);
+    @Inject
+    X509CertificateGenerator(ConfigPropertiesFactory configPropertiesFactory,
+                                     CertInfoFactory certInfoFactory,
+                                     SshPublicKeyFactory sshPublicKeyFactory) throws IOException {
+        this.props = configPropertiesFactory.get(ConfigProperties.Domains.X509);
+        this.sshPublicKeyFactory = sshPublicKeyFactory;
+        this.certInfoFactory = certInfoFactory;
         caPrivateKey = readCAPrivateKey();
         caCert = readCACert();
     }
@@ -58,46 +69,42 @@ public class X509CertificateGenerator {
 
         try {
             caPrivateKeyFileReader = new FileReader(caPrivateKeyFile);
-            caPrivateKeyReader = new PEMReader(caPrivateKeyFileReader, EmptyPasswordFinder.getInstance());
+            caPrivateKeyReader = new PEMReader(caPrivateKeyFileReader, this);
             final KeyPair keypair = (KeyPair) caPrivateKeyReader.readObject();
-            final PrivateKey pkey = keypair.getPrivate();
-            return pkey;
+            return keypair.getPrivate();
         } finally {
-            if (caPrivateKeyReader != null) {
+            if (caPrivateKeyReader != null)
                 caPrivateKeyReader.close();
-            }
-            if (caPrivateKeyFileReader != null) {
+            if (caPrivateKeyFileReader != null)
                 caPrivateKeyFileReader.close();
-            }
         }
     }
 
-    private X509Certificate readCACert() throws IOException {
+    private java.security.cert.X509Certificate readCACert() throws IOException {
         final File caCertFile = new File(props.getProperty(CA_CERT_PATH));
-        ;
         FileReader caCertFileReader = null;
         PEMReader caCertReader = null;
-        X509Certificate cert = null;
 
         try {
             caCertFileReader = new FileReader(caCertFile);
-            caCertReader = new PEMReader(caCertFileReader, EmptyPasswordFinder.getInstance());
-            cert = (X509Certificate) caCertReader.readObject();
+            caCertReader = new PEMReader(caCertFileReader, this);
+            return (java.security.cert.X509Certificate) caCertReader.readObject();
         } finally {
             if (caCertReader != null)
                 caCertReader.close();
             if (caCertFileReader != null)
                 caCertFileReader.close();
-            return cert;
         }
     }
 
-    public java.security.cert.X509Certificate createCert(final String user) throws IOException, NamingException, InvalidKeySpecException, NoSuchAlgorithmException, CertificateException, SignatureException, InvalidKeyException, NoSuchProviderException {
+    @NotNull
+    @Override
+    public sslify.models.X509Certificate get(@NonNull String user) throws GeneralSecurityException, NamingException {
         final UUID uuid = new UUID();
         final X509V3CertificateGenerator generator = new X509V3CertificateGenerator();
 
-        final CertInfo infos = CertInfo.fromLDAP(user);
-        final SshPublicKey sshKey = SshPublicKey.fromRepo(user);
+        final CertInfo infos = certInfoFactory.get(user);
+        final SshPublicKey sshKey = sshPublicKeyFactory.get(user);
 
         final Calendar calendar = Calendar.getInstance();
         final int hoursBefore = Integer.parseInt(props.getProperty(PROPS_HOURS_BEFORE));
@@ -127,7 +134,7 @@ public class X509CertificateGenerator {
         generator.setNotAfter(calendar.getTime());
 
         // Reuse the UUID time as a SN
-        generator.setSerialNumber(new BigInteger(new Long(uuid.getTime()).toString()).abs());
+        generator.setSerialNumber(new BigInteger(Long.toString(uuid.getTime())).abs());
 
         generator.addExtension(X509Extensions.AuthorityKeyIdentifier, false,
                 new AuthorityKeyIdentifierStructure(caCert));
@@ -152,25 +159,12 @@ public class X509CertificateGenerator {
         cert.checkValidity();
         cert.verify(caCert.getPublicKey());
 
-        return cert;
+        return new sslify.models.X509Certificate(cert);
     }
 
-    private static class EmptyPasswordFinder implements PasswordFinder {
-        private static final EmptyPasswordFinder singleton = new EmptyPasswordFinder();
-
-        public char[] getPassword() {
-            return new char[0];
-        }
-
-        public static EmptyPasswordFinder getInstance() {
-            return singleton;
-        }
+    @Override
+    public char[] getPassword() {
+        return new char[0];
     }
 
-    public static X509CertificateGenerator getInstance() throws IOException {
-        if (singleton == null) {
-            singleton = new X509CertificateGenerator();
-        }
-        return singleton;
-    }
 }

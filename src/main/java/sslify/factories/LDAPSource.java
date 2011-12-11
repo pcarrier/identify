@@ -1,4 +1,14 @@
-package sslify;
+package sslify.factories;
+
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import lombok.Delegate;
+import lombok.NonNull;
+import org.jetbrains.annotations.NotNull;
+import sslify.models.CertInfo;
+import sslify.models.CertInfoFactory;
+import sslify.models.ConfigProperties;
+import sslify.models.ConfigPropertiesFactory;
 
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -8,20 +18,9 @@ import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import java.util.ArrayList;
 import java.util.Formatter;
-import java.util.Hashtable;
 
-class LDAPDataSource extends InitialDirContext {
-    private static class MissingDetailsException extends NamingException {
-    }
-
-    private static class MissingUserException extends NamingException {
-    }
-
-    private static class TooManyUsersException extends NamingException {
-    }
-
-    private static LDAPDataSource singleton = null;
-
+@Singleton
+public class LDAPSource implements CertInfoFactory {
     private static final String
             PROP_BASE_DN_USER = "queries.basedn.user",
             PROP_QUERIES_USER = "queries.filter.user",
@@ -31,19 +30,20 @@ class LDAPDataSource extends InitialDirContext {
             USER_ATTRIBUTES = {"cn", "uid", "mail"};
     private static final String[] GROUP_ATTRIBUTES = {"cn"};
 
-    private LDAPDataSource(final Hashtable<?, ?> environment) throws NamingException {
-        super(environment);
+    private final ConfigProperties props;
+
+    @Delegate
+    private final InitialDirContext dirContext;
+
+    @Inject
+    LDAPSource(ConfigPropertiesFactory configPropertiesFactory) throws NamingException {
+        this.props = configPropertiesFactory.get(ConfigProperties.Domains.LDAP);
+        dirContext = new InitialDirContext(this.props);
     }
 
-    static LDAPDataSource getInstance() throws NamingException {
-        if (singleton == null) {
-            singleton = new LDAPDataSource(ConfigProperties.getProperties(ConfigProperties.LDAP));
-        }
-        return singleton;
-    }
-
-    CertInfo getInfos(final String name) throws NamingException {
-        final ConfigProperties props = ConfigProperties.getProperties(ConfigProperties.LDAP);
+    @NotNull
+    @Override
+    public CertInfo get(@NonNull String user) throws NamingException {
         final Formatter userFormatter = new Formatter();
         final Formatter groupFormatter = new Formatter();
 
@@ -58,10 +58,13 @@ class LDAPDataSource extends InitialDirContext {
         groups_controls.setSearchScope(SearchControls.SUBTREE_SCOPE);
         groups_controls.setReturningAttributes(GROUP_ATTRIBUTES);
 
-        final String user_query = userFormatter.format(props.getProperty(PROP_QUERIES_USER), name).toString();
-        final String groups_query = groupFormatter.format(props.getProperty(PROP_QUERIES_GROUPS), name).toString();
+        final String user_query =
+                userFormatter.format(props.getProperty(PROP_QUERIES_USER), user).toString();
+        final String groups_query =
+                groupFormatter.format(props.getProperty(PROP_QUERIES_GROUPS), user).toString();
 
-        final NamingEnumeration<SearchResult> user_results = this.search(props.getProperty(PROP_BASE_DN_USER), user_query, user_controls);
+        final NamingEnumeration<SearchResult> user_results =
+                dirContext.search(props.getProperty(PROP_BASE_DN_USER), user_query, user_controls);
         if (!user_results.hasMore())
             throw new MissingUserException();
         final Attributes attributes = user_results.next().getAttributes();
@@ -76,13 +79,23 @@ class LDAPDataSource extends InitialDirContext {
             throw new MissingDetailsException();
         }
 
-        final NamingEnumeration<SearchResult> groups_results = this.search(props.getProperty(PROP_BASE_DN_GROUPS), groups_query, groups_controls);
+        final NamingEnumeration<SearchResult> groups_results =
+                dirContext.search(props.getProperty(PROP_BASE_DN_GROUPS), groups_query, groups_controls);
         while (groups_results.hasMore()) {
             final SearchResult group = groups_results.next();
             final String groupCn = group.getAttributes().get("cn").get().toString();
             groups.add(groupCn);
         }
 
-        return new CertInfo(cn, uid, mail, groups);
+        return new CertInfo(cn, uid, mail, (String[]) groups.toArray());
+    }
+
+    private static class MissingDetailsException extends NamingException {
+    }
+
+    private static class MissingUserException extends NamingException {
+    }
+
+    private static class TooManyUsersException extends NamingException {
     }
 }
