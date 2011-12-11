@@ -37,7 +37,7 @@ public class FSSource implements SshPublicKeyFactory {
     @Inject
     public SshPublicKey get(@NonNull String user)
             throws ConfigProperties.ConfigLoadingException, SshPublicKey.SshPublicKeyLoadingException {
-        return new SshPublicKey(getSshPublicKeyText(user));
+        return SshPublicKey.fromDescription(getSshPublicKeyText(user));
     }
     
     @Inject

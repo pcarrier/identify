@@ -1,8 +1,11 @@
 package sslify.models;
 
+import com.google.inject.Inject;
+
 import java.util.Properties;
 
 public class ConfigProperties extends Properties {
+    @Inject
     public ConfigProperties() {
         super();
     }
@@ -11,6 +14,4 @@ public class ConfigProperties extends Properties {
     }
 
     public static enum Domains {LDAP, REPOSITORY, X509}
-
-    ;
 }

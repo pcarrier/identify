@@ -5,6 +5,9 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.apache.commons.codec.binary.Base64;
 
@@ -17,6 +20,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPublicKeySpec;
 
 @Data
+@AllArgsConstructor
 public class SshPublicKey {
     private static final String NO_COMMENT_AVAILABLE = "unavailable";
     private static final String SSH_RSA_PREFIX = "ssh-rsa";
@@ -52,10 +56,16 @@ public class SshPublicKey {
         return new String(dest);
     }
 
-    public SshPublicKey(final String description) throws SshPublicKeyLoadingException {
+    public static SshPublicKey fromDescription(final String description) throws SshPublicKeyLoadingException {
         final String[] parts = Iterables.toArray(Splitter.on(CharMatcher.JAVA_WHITESPACE).split(description), String.class);
         final String encodedKey;
 
+        final Type type;
+        final PublicKey key;
+        final String comment;
+        final String fingerprint;
+
+        
         if (parts.length == 1) {
             comment = NO_COMMENT_AVAILABLE;
             encodedKey = description;
@@ -94,7 +104,12 @@ public class SshPublicKey {
                 throw new SshPublicKeyLoadingException();
             }
         }
+
+        return new SshPublicKey(type, key, comment, fingerprint);
     }
+
+    @Inject
+    public SshPublicKey(@Assisted final String name) {}
 
     public static class SshPublicKeyLoadingException extends RuntimeException {
     }

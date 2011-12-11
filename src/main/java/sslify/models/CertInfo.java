@@ -1,16 +1,23 @@
 package sslify.models;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NonNull;
 
 @Data
+@AllArgsConstructor
 public class CertInfo {
     @NonNull
-    private final String cn;
+    private String cn;
     @NonNull
-    private final String uid;
+    private String uid;
     @NonNull
-    private final String mail;
+    private String mail;
     @NonNull
-    private final String[] groups;
+    private String[] groups;
+
+    @Inject
+    public CertInfo(@Assisted String user) {}
 }

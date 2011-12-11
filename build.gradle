@@ -1,4 +1,5 @@
 apply plugin: 'java'
+apply plugin: 'application'
 apply plugin: 'idea'
 
 repositories {
@@ -6,6 +7,8 @@ repositories {
     mavenRepo url: 'http://eaio.com.maven2'
 
 }
+
+mainClassName = "sslify.run.TestCLI"
 
 dependencies {
     compile group: 'commons-codec', name: 'commons-codec', version: '1.5'

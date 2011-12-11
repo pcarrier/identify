@@ -1,5 +1,8 @@
 package sslify.models;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Delegate;
 import org.bouncycastle.openssl.PEMWriter;
@@ -10,9 +13,10 @@ import java.io.StringWriter;
 
 
 @Data
+@AllArgsConstructor
 public class X509Certificate {
     @Delegate
-    private final java.security.cert.X509Certificate cert;
+    private java.security.cert.X509Certificate cert;
 
     @NotNull
     public String toPEM() throws IOException {
@@ -34,4 +38,7 @@ public class X509Certificate {
         }
         return result;
     }
+
+    @Inject
+    X509Certificate(@Assisted String user) {}
 }
