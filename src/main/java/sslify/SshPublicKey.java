@@ -1,13 +1,10 @@
-package sslify.models;
+package sslify;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
-import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.apache.commons.codec.binary.Base64;
 
@@ -20,27 +17,16 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPublicKeySpec;
 
 @Data
-@AllArgsConstructor
 public class SshPublicKey {
     private static final String NO_COMMENT_AVAILABLE = "unavailable";
     private static final String SSH_RSA_PREFIX = "ssh-rsa";
 
-    public static class UnreadableKey extends IllegalStateException {
-        final public static String INVALID_FORMAT = "Invalid format";
-        final public static String INVALID_KEY_TYPE = "Invalid key type";
-
-        public UnreadableKey(final String s) {
-            super(s);
-        }
-
-    }
-
     enum Type {RSA}
 
-    private Type type;
-    private PublicKey key;
-    private String comment;
-    private String fingerprint;
+    private final Type type;
+    private final PublicKey key;
+    private final String comment;
+    private final String fingerprint;
 
     private static BigInteger readMPInt(final ByteArrayDataInput source) {
         final int length = source.readInt();
@@ -56,16 +42,13 @@ public class SshPublicKey {
         return new String(dest);
     }
 
-    public static SshPublicKey fromDescription(final String description) throws SshPublicKeyLoadingException {
+    public static class SshPublicKeyLoadingException extends RuntimeException {
+    }
+
+    public SshPublicKey(final String description) throws SshPublicKeyLoadingException {
         final String[] parts = Iterables.toArray(Splitter.on(CharMatcher.JAVA_WHITESPACE).split(description), String.class);
         final String encodedKey;
 
-        final Type type;
-        final PublicKey key;
-        final String comment;
-        final String fingerprint;
-
-        
         if (parts.length == 1) {
             comment = NO_COMMENT_AVAILABLE;
             encodedKey = description;
@@ -104,13 +87,14 @@ public class SshPublicKey {
                 throw new SshPublicKeyLoadingException();
             }
         }
-
-        return new SshPublicKey(type, key, comment, fingerprint);
     }
 
-    @Inject
-    public SshPublicKey(@Assisted final String name) {}
+    public static class UnreadableKey extends IllegalStateException {
+        final public static String INVALID_FORMAT = "Invalid format";
+        final public static String INVALID_KEY_TYPE = "Invalid key type";
 
-    public static class SshPublicKeyLoadingException extends RuntimeException {
+        public UnreadableKey(final String s) {
+            super(s);
+        }
     }
 }

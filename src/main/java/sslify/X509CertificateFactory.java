@@ -1,4 +1,4 @@
-package sslify.models;
+package sslify;
 
 import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;

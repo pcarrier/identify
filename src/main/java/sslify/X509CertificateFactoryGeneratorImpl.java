@@ -1,4 +1,4 @@
-package sslify.factories;
+package sslify;
 
 import com.eaio.uuid.UUID;
 import com.google.common.base.Joiner;
@@ -16,7 +16,6 @@ import org.bouncycastle.x509.X509V3CertificateGenerator;
 import org.bouncycastle.x509.extension.AuthorityKeyIdentifierStructure;
 import org.bouncycastle.x509.extension.SubjectKeyIdentifierStructure;
 import org.jetbrains.annotations.NotNull;
-import sslify.models.*;
 
 import javax.naming.NamingException;
 import java.io.File;
@@ -32,7 +31,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 @Singleton
-public class X509CertificateGenerator implements X509CertificateFactory, PasswordFinder {
+public class X509CertificateFactoryGeneratorImpl implements X509CertificateFactory, PasswordFinder {
     private static final String
             PROPS_HOURS_BEFORE = "hours.before",
             PROPS_HOURS_AFTER = "hours.after",
@@ -52,9 +51,9 @@ public class X509CertificateGenerator implements X509CertificateFactory, Passwor
     }
 
     @Inject
-    X509CertificateGenerator(ConfigPropertiesFactory configPropertiesFactory,
-                                     CertInfoFactory certInfoFactory,
-                                     SshPublicKeyFactory sshPublicKeyFactory) throws IOException {
+    X509CertificateFactoryGeneratorImpl(ConfigPropertiesFactory configPropertiesFactory,
+                                        CertInfoFactory certInfoFactory,
+                                        SshPublicKeyFactory sshPublicKeyFactory) throws IOException {
         this.props = configPropertiesFactory.get(ConfigProperties.Domains.X509);
         this.sshPublicKeyFactory = sshPublicKeyFactory;
         this.certInfoFactory = certInfoFactory;
@@ -99,7 +98,7 @@ public class X509CertificateGenerator implements X509CertificateFactory, Passwor
 
     @NotNull
     @Override
-    public sslify.models.X509Certificate get(@NonNull String user) throws GeneralSecurityException, NamingException {
+    public X509Certificate get(@NonNull String user) throws GeneralSecurityException, NamingException {
         final UUID uuid = new UUID();
         final X509V3CertificateGenerator generator = new X509V3CertificateGenerator();
 
@@ -159,7 +158,7 @@ public class X509CertificateGenerator implements X509CertificateFactory, Passwor
         cert.checkValidity();
         cert.verify(caCert.getPublicKey());
 
-        return new sslify.models.X509Certificate(cert);
+        return new X509Certificate(cert);
     }
 
     @Override

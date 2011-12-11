@@ -1,11 +1,7 @@
-package sslify.run;
+package sslify;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import sslify.SslifyModule;
-import sslify.models.CertInfoFactory;
-import sslify.models.SshPublicKeyFactory;
-import sslify.models.X509CertificateFactory;
 
 public class TestCLI {
     private static final String INVALID_SYNTAX_ERROR = "We expect a command followed by usernames as arguments.\n" +

@@ -1,17 +1,15 @@
-package sslify.factories;
+package sslify;
 
 import com.google.inject.Singleton;
 import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;
-import sslify.models.ConfigProperties;
-import sslify.models.ConfigPropertiesFactory;
 
 import java.io.*;
 import java.util.EnumMap;
 import java.util.Map;
 
 @Singleton
-public class ConfigSource implements ConfigPropertiesFactory {
+public class ConfigPropertiesFactoryImpl implements ConfigPropertiesFactory {
     private static final String CONF_PATH_PROPERTY = "sslify.configpath";
     private static final String CONF_FILE_SUFFIX = ".conf.properties";
 
@@ -22,6 +20,7 @@ public class ConfigSource implements ConfigPropertiesFactory {
         DomainMapping.put(ConfigProperties.Domains.LDAP, "ldap");
         DomainMapping.put(ConfigProperties.Domains.REPOSITORY, "repo");
         DomainMapping.put(ConfigProperties.Domains.X509, "x509");
+        DomainMapping.put(ConfigProperties.Domains.SERVER, "server");
     }
 
     private static final Map<ConfigProperties.Domains, ConfigProperties> loaded =

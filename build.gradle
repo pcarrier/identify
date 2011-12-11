@@ -8,7 +8,7 @@ repositories {
 
 }
 
-mainClassName = "sslify.run.TestCLI"
+mainClassName = "sslify.TestCLI"
 
 dependencies {
     compile group: 'commons-codec', name: 'commons-codec', version: '1.5'
@@ -16,12 +16,6 @@ dependencies {
     compile group: 'com.eaio.uuid', name: 'uuid', version: '3.2'
     compile group: 'com.google.guava', name: 'guava', version: '10.0.1'
     compile group: 'com.google.inject', name: 'guice', version: '3.0'
-    compile group: 'com.google.inject.extensions', name: 'guice-assistedinject', version: '3.0'
-    compile group: 'org.projectlombok', name:  'lombok', version: '0.10.4'
+    compile group: 'org.projectlombok', name: 'lombok', version: '0.10.4'
     compile group: 'com.intellij', name: 'annotations', version: '9.0.4'
-}
-
-jar {
-    dependsOn configurations.compile
-    from { configurations.runtime.collect { it.isDirectory() ? it : zipTree(it) } }
 }

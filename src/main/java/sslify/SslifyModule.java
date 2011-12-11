@@ -1,22 +1,16 @@
 package sslify;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
-import sslify.models.*;
 
 public class SslifyModule extends AbstractModule {
     protected void configure() {
-        install(new FactoryModuleBuilder()
-                .implement(ConfigProperties.class, ConfigProperties.class)
-                .build(ConfigPropertiesFactory.class));
-        install(new FactoryModuleBuilder()
-                .implement(CertInfo.class, CertInfo.class)
-                .build(CertInfoFactory.class));
-        install(new FactoryModuleBuilder()
-                .implement(SshPublicKey.class, SshPublicKey.class)
-                .build(SshPublicKeyFactory.class));
-        install(new FactoryModuleBuilder()
-                .implement(X509Certificate.class, X509Certificate.class)
-                .build(X509CertificateFactory.class));
+        bind(ConfigPropertiesFactory.class)
+                .to(ConfigPropertiesFactoryImpl.class);
+        bind(CertInfoFactory.class)
+                .to(CertInfoFactoryLDAPImpl.class);
+        bind(SshPublicKeyFactory.class)
+                .to(SshPublicKeyFactoryFSImpl.class);
+        bind(X509CertificateFactory.class)
+                .to(X509CertificateFactoryGeneratorImpl.class);
     }
 }

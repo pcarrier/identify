@@ -1,4 +1,4 @@
-package sslify.models;
+package sslify;
 
 import org.jetbrains.annotations.NotNull;
 

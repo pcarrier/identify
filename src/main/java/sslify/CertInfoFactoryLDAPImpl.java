@@ -1,14 +1,10 @@
-package sslify.factories;
+package sslify;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.Delegate;
 import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;
-import sslify.models.CertInfo;
-import sslify.models.CertInfoFactory;
-import sslify.models.ConfigProperties;
-import sslify.models.ConfigPropertiesFactory;
 
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -20,7 +16,7 @@ import java.util.ArrayList;
 import java.util.Formatter;
 
 @Singleton
-public class LDAPSource implements CertInfoFactory {
+public class CertInfoFactoryLDAPImpl implements CertInfoFactory {
     private static final String
             PROP_BASE_DN_USER = "queries.basedn.user",
             PROP_QUERIES_USER = "queries.filter.user",
@@ -36,7 +32,8 @@ public class LDAPSource implements CertInfoFactory {
     private final InitialDirContext dirContext;
 
     @Inject
-    LDAPSource(ConfigPropertiesFactory configPropertiesFactory) throws NamingException {
+    CertInfoFactoryLDAPImpl(ConfigPropertiesFactory configPropertiesFactory)
+            throws NamingException {
         this.props = configPropertiesFactory.get(ConfigProperties.Domains.LDAP);
         dirContext = new InitialDirContext(this.props);
     }
@@ -59,12 +56,15 @@ public class LDAPSource implements CertInfoFactory {
         groups_controls.setReturningAttributes(GROUP_ATTRIBUTES);
 
         final String user_query =
-                userFormatter.format(props.getProperty(PROP_QUERIES_USER), user).toString();
+                userFormatter.format(
+                        props.getProperty(PROP_QUERIES_USER), user).toString();
         final String groups_query =
-                groupFormatter.format(props.getProperty(PROP_QUERIES_GROUPS), user).toString();
+                groupFormatter.format(
+                        props.getProperty(PROP_QUERIES_GROUPS), user).toString();
 
         final NamingEnumeration<SearchResult> user_results =
-                dirContext.search(props.getProperty(PROP_BASE_DN_USER), user_query, user_controls);
+                dirContext.search(props.getProperty(PROP_BASE_DN_USER),
+                        user_query, user_controls);
         if (!user_results.hasMore())
             throw new MissingUserException();
         final Attributes attributes = user_results.next().getAttributes();
@@ -80,14 +80,16 @@ public class LDAPSource implements CertInfoFactory {
         }
 
         final NamingEnumeration<SearchResult> groups_results =
-                dirContext.search(props.getProperty(PROP_BASE_DN_GROUPS), groups_query, groups_controls);
+                dirContext.search(props.getProperty(PROP_BASE_DN_GROUPS),
+                        groups_query, groups_controls);
         while (groups_results.hasMore()) {
             final SearchResult group = groups_results.next();
             final String groupCn = group.getAttributes().get("cn").get().toString();
             groups.add(groupCn);
         }
 
-        return new CertInfo(cn, uid, mail, (String[]) groups.toArray());
+        return new CertInfo(cn, uid, mail,
+                groups.toArray(new String[groups.size()]));
     }
 
     private static class MissingDetailsException extends NamingException {

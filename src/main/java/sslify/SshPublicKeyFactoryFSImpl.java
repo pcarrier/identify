@@ -1,14 +1,10 @@
-package sslify.factories;
+package sslify;
 
 import com.google.common.io.Files;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;
-import sslify.models.ConfigProperties;
-import sslify.models.ConfigPropertiesFactory;
-import sslify.models.SshPublicKey;
-import sslify.models.SshPublicKeyFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,7 +12,7 @@ import java.nio.charset.Charset;
 import java.util.Formatter;
 
 @Singleton
-public class FSSource implements SshPublicKeyFactory {
+public class SshPublicKeyFactoryFSImpl implements SshPublicKeyFactory {
     private static final String PROP_PATH = "repo.keypath";
     private static final String CHARSET = "UTF-8";
     private final ConfigProperties configProperties;
@@ -37,11 +33,11 @@ public class FSSource implements SshPublicKeyFactory {
     @Inject
     public SshPublicKey get(@NonNull String user)
             throws ConfigProperties.ConfigLoadingException, SshPublicKey.SshPublicKeyLoadingException {
-        return SshPublicKey.fromDescription(getSshPublicKeyText(user));
+        return new SshPublicKey(getSshPublicKeyText(user));
     }
-    
+
     @Inject
-    FSSource(ConfigPropertiesFactory configPropertiesFactory) {
+    SshPublicKeyFactoryFSImpl(ConfigPropertiesFactory configPropertiesFactory) {
         this.configProperties = configPropertiesFactory.get(ConfigProperties.Domains.REPOSITORY);
     }
 }
