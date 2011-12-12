@@ -105,8 +105,8 @@ public class X509CertificateFactoryGeneratorImpl implements X509CertificateFacto
         final UUID uuid = new UUID();
         final X509V3CertificateGenerator generator = new X509V3CertificateGenerator();
 
-        final CertInfo infos = certInfoFactory.get(user);
         final SshPublicKey sshKey = sshPublicKeyFactory.get(user);
+        final CertInfo infos = certInfoFactory.get(user);
 
         final Calendar calendar = Calendar.getInstance();
         final int hoursBefore = Integer.parseInt(props.getProperty(PROPS_HOURS_BEFORE));
