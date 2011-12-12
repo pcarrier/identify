@@ -33,6 +33,7 @@ public class SshPublicKeyFactoryFSImpl implements SshPublicKeyFactory {
         }
     }
 
+    /* Optimisticly non-synchronized */
     @NotNull
     public SshPublicKey get(@NonNull final String user)
             throws ConfigProperties.ConfigLoadingException, SshPublicKey.SshPublicKeyLoadingException {

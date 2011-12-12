@@ -25,9 +25,10 @@ public class ConfigPropertiesFactoryImpl implements ConfigPropertiesFactory {
     private static final Map<ConfigProperties.Domain, ConfigProperties> loaded =
             new EnumMap<ConfigProperties.Domain, ConfigProperties>(ConfigProperties.Domain.class);
 
+    /* Optimisticly non-synchronized */
     @NotNull
     @Override
-    public synchronized ConfigProperties get(@NonNull ConfigProperties.Domain domain)
+    public ConfigProperties get(@NonNull ConfigProperties.Domain domain)
             throws ConfigProperties.ConfigLoadingException {
         if (loaded.containsKey(domain))
             return loaded.get(domain);

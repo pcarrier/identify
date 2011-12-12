@@ -36,6 +36,7 @@ public class X509CertificateFactoryGeneratorImpl implements X509CertificateFacto
     private static final String
             PROPS_HOURS_BEFORE = "hours.before",
             PROPS_HOURS_AFTER = "hours.after",
+            PROPS_CHECK = "check",
             SIGNATURE_ALGORITHM = "SHA1withRSA",
             CA_CERT_PATH = "ca.cert.path",
             CA_KEY_PATH = "ca.key.path",
@@ -45,6 +46,9 @@ public class X509CertificateFactoryGeneratorImpl implements X509CertificateFacto
     private final SshPublicKeyFactory sshPublicKeyFactory;
     private final CertInfoFactory certInfoFactory;
     private final String hostname;
+    private final boolean checkCert;
+    final int hoursBefore;
+    final int hoursAfter;
     private java.security.cert.X509Certificate caCert;
     private PrivateKey caPrivateKey;
 
@@ -57,11 +61,15 @@ public class X509CertificateFactoryGeneratorImpl implements X509CertificateFacto
                                         CertInfoFactory certInfoFactory,
                                         SshPublicKeyFactory sshPublicKeyFactory) throws IOException {
         this.props = configPropertiesFactory.get(ConfigProperties.Domain.X509);
+        this.hoursBefore = Integer.parseInt(props.getProperty(PROPS_HOURS_BEFORE));
+        this.hoursAfter = Integer.parseInt(props.getProperty(PROPS_HOURS_AFTER));
+        this.checkCert = Boolean.parseBoolean(props.getProperty(PROPS_CHECK));
+
         this.sshPublicKeyFactory = sshPublicKeyFactory;
         this.certInfoFactory = certInfoFactory;
         this.hostname = InetAddress.getLocalHost().getHostName();
-        caPrivateKey = readCAPrivateKey();
-        caCert = readCACert();
+        this.caPrivateKey = readCAPrivateKey();
+        this.caCert = readCACert();
     }
 
     private PrivateKey readCAPrivateKey() throws IOException {
@@ -109,8 +117,6 @@ public class X509CertificateFactoryGeneratorImpl implements X509CertificateFacto
         final CertInfo infos = certInfoFactory.get(user);
 
         final Calendar calendar = Calendar.getInstance();
-        final int hoursBefore = Integer.parseInt(props.getProperty(PROPS_HOURS_BEFORE));
-        final int hoursAfter = Integer.parseInt(props.getProperty(PROPS_HOURS_AFTER));
 
         final Vector<DERObjectIdentifier> attrsVector = new Vector<DERObjectIdentifier>();
         final Hashtable<DERObjectIdentifier, String> attrsHash = new Hashtable<DERObjectIdentifier, String>();
@@ -160,8 +166,10 @@ public class X509CertificateFactoryGeneratorImpl implements X509CertificateFacto
 
         final java.security.cert.X509Certificate cert = generator.generate(caPrivateKey, BC_PROVIDER);
 
-        cert.checkValidity();
-        cert.verify(caCert.getPublicKey());
+        if (this.checkCert) {
+            cert.checkValidity();
+            cert.verify(caCert.getPublicKey());
+        }
 
         return new X509Certificate(cert);
     }

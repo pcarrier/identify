@@ -94,6 +94,7 @@ public class CertInfoFactoryLDAPImpl implements CertInfoFactory {
                 groups.toArray(new String[groups.size()]));
     }
 
+    /* Optimisticly non-synchronized */
     @NotNull
     @Override
     public CertInfo get(@NonNull String user) throws NamingException {

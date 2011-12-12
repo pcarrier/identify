@@ -20,8 +20,9 @@ public class CacheFactoryImpl implements CacheFactory {
     private static Map<Domain, Cache> loaded =
             new EnumMap<Domain, Cache>(Domain.class);
 
+    /* Optimisticly non-synchronized */
     @Override
-    public synchronized Cache getCache(Domain domain) throws FileNotFoundException {
+    public Cache getCache(Domain domain) throws FileNotFoundException {
         if (loaded.containsKey(domain)) {
             return loaded.get(domain);
         }
