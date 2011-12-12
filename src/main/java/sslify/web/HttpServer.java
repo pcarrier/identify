@@ -12,6 +12,7 @@ import sslify.ConfigProperties;
 import sslify.ConfigPropertiesFactory;
 
 import javax.servlet.http.HttpServlet;
+import java.util.Arrays;
 
 @Slf4j
 public class HttpServer {
@@ -50,7 +51,7 @@ public class HttpServer {
             HttpServer.log.info("started");
             server.join();
         } catch (Exception e) {
-            e.printStackTrace(System.err);
+            log.error(Arrays.toString(e.getStackTrace()));
             System.err.flush();
             System.exit(1);
         } finally {

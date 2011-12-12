@@ -2,9 +2,12 @@ package sslify;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
+@Slf4j
 public class CLIMain {
     private static final String INVALID_SYNTAX_ERROR = "We expect a command.\n" +
             "  Commands taking 1 or more users as parameters: ldap, sshtext, sshkey, sslcert\n" +
@@ -61,7 +64,7 @@ public class CLIMain {
                     try {
                         runnable.exec(arg);
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        log.error(Arrays.toString(e.getStackTrace()));
                     }
                 }
             });
@@ -72,7 +75,7 @@ public class CLIMain {
             try {
                 t.join();
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                log.error(Arrays.toString(e.getStackTrace()));
             }
         }
     }

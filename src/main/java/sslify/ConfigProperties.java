@@ -1,6 +1,5 @@
 package sslify;
 
-import java.io.FileNotFoundException;
 import java.util.Properties;
 
 public class ConfigProperties extends Properties {
