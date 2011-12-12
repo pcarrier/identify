@@ -39,8 +39,7 @@ public class X509CertificateFactoryGeneratorImpl implements X509CertificateFacto
             PROPS_CHECK = "check",
             SIGNATURE_ALGORITHM = "SHA1withRSA",
             CA_CERT_PATH = "ca.cert.path",
-            CA_KEY_PATH = "ca.key.path",
-            BC_PROVIDER = "BC";
+            CA_KEY_PATH = "ca.key.path";
 
     private final ConfigProperties props;
     private final SshPublicKeyFactory sshPublicKeyFactory;
@@ -166,7 +165,7 @@ public class X509CertificateFactoryGeneratorImpl implements X509CertificateFacto
         generator.setPublicKey(sshKey.getKey());
         generator.setSignatureAlgorithm(SIGNATURE_ALGORITHM);
 
-        final java.security.cert.X509Certificate cert = generator.generate(caPrivateKey, BC_PROVIDER);
+        final java.security.cert.X509Certificate cert = generator.generate(caPrivateKey, BouncyCastleProvider.PROVIDER_NAME);
 
         if (this.checkCert) {
             cert.checkValidity();
