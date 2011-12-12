@@ -2,7 +2,6 @@ package sslify;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import lombok.Delegate;
 import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,14 +26,10 @@ public class CertInfoFactoryLDAPImpl implements CertInfoFactory {
 
     private final ConfigProperties props;
 
-    @Delegate
-    private final InitialDirContext dirContext;
-
     @Inject
     CertInfoFactoryLDAPImpl(ConfigPropertiesFactory configPropertiesFactory)
             throws NamingException {
         this.props = configPropertiesFactory.get(ConfigProperties.Domains.LDAP);
-        dirContext = new InitialDirContext(this.props);
     }
 
     @NotNull
@@ -45,6 +40,8 @@ public class CertInfoFactoryLDAPImpl implements CertInfoFactory {
 
         final String cn, uid, mail;
         final ArrayList<String> groups = new ArrayList<String>();
+
+        final InitialDirContext dirContext = new InitialDirContext(this.props);
 
         final SearchControls user_controls = new SearchControls();
         user_controls.setSearchScope(SearchControls.SUBTREE_SCOPE);
@@ -86,6 +83,8 @@ public class CertInfoFactoryLDAPImpl implements CertInfoFactory {
             final String groupCn = group.getAttributes().get("cn").get().toString();
             groups.add(groupCn);
         }
+
+        dirContext.close();
 
         return new CertInfo(cn, uid, mail,
                 groups.toArray(new String[groups.size()]));
