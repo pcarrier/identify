@@ -3,6 +3,7 @@ package sslify;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.Element;
 import org.jetbrains.annotations.NotNull;
@@ -17,6 +18,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Formatter;
 
+@Slf4j
 @Singleton
 public class CertInfoFactoryLDAPImpl implements CertInfoFactory {
     private static final String PROP_BASE_DN_USER = "queries.basedn.user";
@@ -31,14 +33,14 @@ public class CertInfoFactoryLDAPImpl implements CertInfoFactory {
     private final Cache cache;
 
     @Inject
-    CertInfoFactoryLDAPImpl(ConfigPropertiesFactory configPropertiesFactory, CacheFactory cacheFactory)
-            throws NamingException, FileNotFoundException {
+    CertInfoFactoryLDAPImpl(final ConfigPropertiesFactory configPropertiesFactory, final CacheFactory cacheFactory)
+            throws FileNotFoundException, ConfigProperties.ConfigLoadingException {
         this.props = configPropertiesFactory.get(ConfigProperties.Domain.LDAP);
         this.cache = cacheFactory.getCache(CacheFactory.Domain.LDAP);
     }
 
     @NotNull
-    private CertInfo download(@NonNull String user) throws NamingException {
+    private CertInfo download(@NonNull final String user) throws NamingException {
         final Formatter userFormatter = new Formatter();
         final Formatter groupFormatter = new Formatter();
 
@@ -90,29 +92,32 @@ public class CertInfoFactoryLDAPImpl implements CertInfoFactory {
 
         dirContext.close();
 
-        return new CertInfo(cn, uid, mail,
-                groups.toArray(new String[groups.size()]));
+        return new CertInfo(cn, uid, mail, groups.toArray(new String[groups.size()]));
     }
 
     /* Optimisticly non-synchronized */
     @NotNull
     @Override
-    public CertInfo get(@NonNull String user) throws NamingException {
-        Element cached = cache.get(user);
-        if (cached != null) {
-            return (CertInfo) cached.getValue();
+    public CertInfo get(@NonNull final String user) throws NamingException {
+        final Element element = cache.get(user);
+        if (element != null) {
+            CertInfo cached = (CertInfo) element.getValue();
+            if(cached == null) {
+                log.debug("cached failure:'{}'", user);
+                throw new CachedFailureException();
+            } else {
+                log.debug("cached user:'{}'", user);
+                return cached;
+            }
         }
-        CertInfo grabbed = download(user);
-        cache.put(new Element(user, grabbed));
+
+        log.debug("uncached user:'{}'", user);
+        CertInfo grabbed = null;
+        try {
+            grabbed = download(user);
+        } finally {
+            cache.put(new Element(user, grabbed));
+        }
         return grabbed;
-    }
-
-    public static class MissingDetailsException extends NamingException {
-    }
-
-    public static class MissingUserException extends NamingException {
-    }
-
-    public static class TooManyUsersException extends NamingException {
     }
 }

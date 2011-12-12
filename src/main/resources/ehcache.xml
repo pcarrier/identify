@@ -1,4 +1,6 @@
-<ehcache>
+<ehcache updateCheck="false"
+         monitoring="autodetect"
+         dynamicConfig="true">
     <cache name="ldap"
            maxElementsInMemory="10000"
            eternal="false"

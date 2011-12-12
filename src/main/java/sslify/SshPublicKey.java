@@ -43,12 +43,6 @@ public class SshPublicKey implements Serializable {
         return new String(dest);
     }
 
-    public static class SshPublicKeyLoadingException extends RuntimeException {
-        public SshPublicKeyLoadingException(Exception e) {
-            super(e);
-        }
-    }
-
     public SshPublicKey(final String description) throws SshPublicKeyLoadingException {
         final String[] parts = Iterables.toArray(Splitter.on(CharMatcher.JAVA_WHITESPACE).split(description), String.class);
         final String encodedKey;
@@ -99,6 +93,15 @@ public class SshPublicKey implements Serializable {
 
         public UnreadableKey(final String s) {
             super(s);
+        }
+    }
+
+    public static class SshPublicKeyLoadingException extends Exception {
+        public SshPublicKeyLoadingException(Exception e) {
+            super(e);
+        }
+
+        public SshPublicKeyLoadingException() {
         }
     }
 }

@@ -8,5 +8,5 @@ import java.security.GeneralSecurityException;
 
 public interface X509CertificateFactory {
     @NotNull
-    X509Certificate get(@NonNull String user) throws GeneralSecurityException, NamingException;
+    X509Certificate get(@NonNull String user) throws GeneralSecurityException, NamingException, SshPublicKey.SshPublicKeyLoadingException, ConfigProperties.ConfigLoadingException;
 }

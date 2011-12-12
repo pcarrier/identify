@@ -4,6 +4,7 @@ import com.google.common.io.Files;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.Element;
 import org.jetbrains.annotations.NotNull;
@@ -14,6 +15,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Formatter;
 
+@Slf4j
 @Singleton
 public class SshPublicKeyFactoryFSImpl implements SshPublicKeyFactory {
     private static final String PROP_PATH = "repo.keypath";
@@ -37,18 +39,31 @@ public class SshPublicKeyFactoryFSImpl implements SshPublicKeyFactory {
     @NotNull
     public SshPublicKey get(@NonNull final String user)
             throws ConfigProperties.ConfigLoadingException, SshPublicKey.SshPublicKeyLoadingException {
-        Element cached = cache.get(user);
-        if (cached != null) {
-            return (SshPublicKey) cached.getValue();
+        Element element = cache.get(user);
+        if (element != null) {
+            SshPublicKey cached = (SshPublicKey) element.getValue();
+            if (cached == null) {
+                log.debug("cached failure:'{}'", user);
+                throw new CachedFailureException();
+            } else {
+                log.debug("cached user:'{}'", user);
+                return cached;
+            }
         }
-        SshPublicKey grabbed = new SshPublicKey(getSshPublicKeyText(user));
-        cache.put(new Element(user, grabbed));
+
+        log.debug("uncached user:'{}'", user);
+        SshPublicKey grabbed = null;
+        try {
+            grabbed = new SshPublicKey(getSshPublicKeyText(user));
+        } finally {
+            cache.put(new Element(user, grabbed));
+        }
         return grabbed;
     }
 
     @Inject
     SshPublicKeyFactoryFSImpl(ConfigPropertiesFactory configPropertiesFactory, CacheFactory cacheFactory)
-            throws FileNotFoundException {
+            throws FileNotFoundException, ConfigProperties.ConfigLoadingException {
         this.configProperties = configPropertiesFactory.get(ConfigProperties.Domain.REPOSITORY);
         this.cache = cacheFactory.getCache(CacheFactory.Domain.REPOSITORY);
     }

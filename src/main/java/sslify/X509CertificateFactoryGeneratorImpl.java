@@ -59,7 +59,8 @@ public class X509CertificateFactoryGeneratorImpl implements X509CertificateFacto
     @Inject
     X509CertificateFactoryGeneratorImpl(ConfigPropertiesFactory configPropertiesFactory,
                                         CertInfoFactory certInfoFactory,
-                                        SshPublicKeyFactory sshPublicKeyFactory) throws IOException {
+                                        SshPublicKeyFactory sshPublicKeyFactory)
+            throws IOException, ConfigProperties.ConfigLoadingException {
         this.props = configPropertiesFactory.get(ConfigProperties.Domain.X509);
         this.hoursBefore = Integer.parseInt(props.getProperty(PROPS_HOURS_BEFORE));
         this.hoursAfter = Integer.parseInt(props.getProperty(PROPS_HOURS_AFTER));
@@ -109,7 +110,8 @@ public class X509CertificateFactoryGeneratorImpl implements X509CertificateFacto
 
     @NotNull
     @Override
-    public X509Certificate get(@NonNull String user) throws GeneralSecurityException, NamingException {
+    public X509Certificate get(@NonNull String user)
+            throws GeneralSecurityException, NamingException, SshPublicKey.SshPublicKeyLoadingException, ConfigProperties.ConfigLoadingException {
         final UUID uuid = new UUID();
         final X509V3CertificateGenerator generator = new X509V3CertificateGenerator();
 

@@ -1,6 +1,8 @@
 package sslify;
 
 import com.google.inject.AbstractModule;
+import org.eclipse.jetty.server.Handler;
+import sslify.web.X509Servlet;
 
 public class SslifyModule extends AbstractModule {
     protected void configure() {
@@ -12,8 +14,6 @@ public class SslifyModule extends AbstractModule {
                 .to(SshPublicKeyFactoryFSImpl.class);
         bind(X509CertificateFactory.class)
                 .to(X509CertificateFactoryGeneratorImpl.class);
-        bind(HttpServer.class)
-                .to(HttpServerImpl.class);
         bind(CacheFactory.class)
                 .to(CacheFactoryImpl.class);
     }

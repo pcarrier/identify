@@ -43,9 +43,9 @@ public class ConfigPropertiesFactoryImpl implements ConfigPropertiesFactory {
             loaded.put(domain, props);
             return props;
         } catch (FileNotFoundException e) {
-            throw new ConfigProperties.ConfigLoadingException();
+            throw new ConfigProperties.ConfigLoadingException(e);
         } catch (IOException e) {
-            throw new ConfigProperties.ConfigLoadingException();
+            throw new ConfigProperties.ConfigLoadingException(e);
         } finally {
             if (inputStream != null)
                 try {
