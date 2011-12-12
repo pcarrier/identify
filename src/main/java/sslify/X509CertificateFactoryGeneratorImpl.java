@@ -56,7 +56,7 @@ public class X509CertificateFactoryGeneratorImpl implements X509CertificateFacto
     X509CertificateFactoryGeneratorImpl(ConfigPropertiesFactory configPropertiesFactory,
                                         CertInfoFactory certInfoFactory,
                                         SshPublicKeyFactory sshPublicKeyFactory) throws IOException {
-        this.props = configPropertiesFactory.get(ConfigProperties.Domains.X509);
+        this.props = configPropertiesFactory.get(ConfigProperties.Domain.X509);
         this.sshPublicKeyFactory = sshPublicKeyFactory;
         this.certInfoFactory = certInfoFactory;
         this.hostname = InetAddress.getLocalHost().getHostName();

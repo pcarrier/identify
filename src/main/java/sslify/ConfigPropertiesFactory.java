@@ -4,5 +4,5 @@ import org.jetbrains.annotations.NotNull;
 
 public interface ConfigPropertiesFactory {
     @NotNull
-    ConfigProperties get(ConfigProperties.Domains domain) throws ConfigProperties.ConfigLoadingException;
+    ConfigProperties get(ConfigProperties.Domain domain) throws ConfigProperties.ConfigLoadingException;
 }

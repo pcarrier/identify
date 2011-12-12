@@ -3,8 +3,10 @@ package sslify;
 import lombok.Data;
 import lombok.NonNull;
 
+import java.io.Serializable;
+
 @Data
-public class CertInfo {
+public class CertInfo implements Serializable {
     @NonNull
     private final String cn;
     @NonNull

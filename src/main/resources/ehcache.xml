@@ -1,0 +1,16 @@
+<ehcache>
+    <cache name="ldap"
+           maxElementsInMemory="10000"
+           eternal="false"
+           overflowToDisk="false"
+           timeToIdleSeconds="0"
+           timeToLiveSeconds="600"
+           diskPersistent="false"/>
+    <cache name="repository"
+           maxElementsInMemory="10000"
+           eternal="false"
+           overflowToDisk="false"
+           timeToIdleSeconds="0"
+           timeToLiveSeconds="600"
+           diskPersistent="false"/>
+</ehcache>

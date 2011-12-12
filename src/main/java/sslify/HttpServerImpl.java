@@ -18,7 +18,7 @@ public class HttpServerImpl implements HttpServer {
 
     @Inject
     HttpServerImpl(ConfigPropertiesFactory configPropertiesFactory, X509CertificateFactory x509CertificateFactory) {
-        ConfigProperties config = configPropertiesFactory.get(ConfigProperties.Domains.HTTP_SERVER);
+        ConfigProperties config = configPropertiesFactory.get(ConfigProperties.Domain.HTTP_SERVER);
         port = Integer.parseInt(config.getProperty(PROP_PORT));
         this.x509CertificateFactory = x509CertificateFactory;
     }

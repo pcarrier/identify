@@ -3,6 +3,8 @@ package sslify;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.NonNull;
+import net.sf.ehcache.Cache;
+import net.sf.ehcache.Element;
 import org.jetbrains.annotations.NotNull;
 
 import javax.naming.NamingEnumeration;
@@ -11,6 +13,7 @@ import javax.naming.directory.Attributes;
 import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Formatter;
 
@@ -25,16 +28,17 @@ public class CertInfoFactoryLDAPImpl implements CertInfoFactory {
     private static final String[] GROUP_ATTRIBUTES = {"cn"};
 
     private final ConfigProperties props;
+    private final Cache cache;
 
     @Inject
-    CertInfoFactoryLDAPImpl(ConfigPropertiesFactory configPropertiesFactory)
-            throws NamingException {
-        this.props = configPropertiesFactory.get(ConfigProperties.Domains.LDAP);
+    CertInfoFactoryLDAPImpl(ConfigPropertiesFactory configPropertiesFactory, CacheFactory cacheFactory)
+            throws NamingException, FileNotFoundException {
+        this.props = configPropertiesFactory.get(ConfigProperties.Domain.LDAP);
+        this.cache = cacheFactory.getCache(CacheFactory.Domain.LDAP);
     }
 
     @NotNull
-    @Override
-    public CertInfo get(@NonNull String user) throws NamingException {
+    private CertInfo download(@NonNull String user) throws NamingException {
         final Formatter userFormatter = new Formatter();
         final Formatter groupFormatter = new Formatter();
 
@@ -88,6 +92,18 @@ public class CertInfoFactoryLDAPImpl implements CertInfoFactory {
 
         return new CertInfo(cn, uid, mail,
                 groups.toArray(new String[groups.size()]));
+    }
+
+    @NotNull
+    @Override
+    public CertInfo get(@NonNull String user) throws NamingException {
+        Element cached = cache.get(user);
+        if (cached != null) {
+            return (CertInfo) cached.getValue();
+        }
+        CertInfo grabbed = download(user);
+        cache.put(new Element(user, grabbed));
+        return grabbed;
     }
 
     public static class MissingDetailsException extends NamingException {

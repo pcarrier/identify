@@ -10,25 +10,24 @@ import java.util.Map;
 
 @Singleton
 public class ConfigPropertiesFactoryImpl implements ConfigPropertiesFactory {
-    private static final String CONF_PATH_PROPERTY = "sslify.configpath";
     private static final String CONF_FILE_SUFFIX = ".conf.properties";
 
-    private static Map<ConfigProperties.Domains, String> DomainMapping =
-            new EnumMap<ConfigProperties.Domains, String>(ConfigProperties.Domains.class);
+    private static Map<ConfigProperties.Domain, String> DomainMapping =
+            new EnumMap<ConfigProperties.Domain, String>(ConfigProperties.Domain.class);
 
     static {
-        DomainMapping.put(ConfigProperties.Domains.LDAP, "ldap");
-        DomainMapping.put(ConfigProperties.Domains.REPOSITORY, "repo");
-        DomainMapping.put(ConfigProperties.Domains.X509, "x509");
-        DomainMapping.put(ConfigProperties.Domains.HTTP_SERVER, "http.server");
+        DomainMapping.put(ConfigProperties.Domain.LDAP, "ldap");
+        DomainMapping.put(ConfigProperties.Domain.REPOSITORY, "repo");
+        DomainMapping.put(ConfigProperties.Domain.X509, "x509");
+        DomainMapping.put(ConfigProperties.Domain.HTTP_SERVER, "http.server");
     }
 
-    private static final Map<ConfigProperties.Domains, ConfigProperties> loaded =
-            new EnumMap<ConfigProperties.Domains, ConfigProperties>(ConfigProperties.Domains.class);
+    private static final Map<ConfigProperties.Domain, ConfigProperties> loaded =
+            new EnumMap<ConfigProperties.Domain, ConfigProperties>(ConfigProperties.Domain.class);
 
     @NotNull
     @Override
-    public synchronized ConfigProperties get(@NonNull ConfigProperties.Domains domain)
+    public synchronized ConfigProperties get(@NonNull ConfigProperties.Domain domain)
             throws ConfigProperties.ConfigLoadingException {
         if (loaded.containsKey(domain))
             return loaded.get(domain);
@@ -38,7 +37,7 @@ public class ConfigPropertiesFactoryImpl implements ConfigPropertiesFactory {
         InputStream inputStream = null;
 
         try {
-            inputStream = getInputStream(fullName);
+            inputStream = ConfigFileLocator.getInputStream(fullName);
             props.load(inputStream);
             loaded.put(domain, props);
             return props;
@@ -55,15 +54,4 @@ public class ConfigPropertiesFactoryImpl implements ConfigPropertiesFactory {
         }
     }
 
-    @NotNull
-    static private InputStream getInputStream(final String name) throws FileNotFoundException {
-        final String confPath = System.getProperty(CONF_PATH_PROPERTY);
-        final InputStream stream;
-        if (confPath == null) {
-            stream = ConfigProperties.class.getClassLoader().getResourceAsStream(name);
-        } else {
-            stream = new FileInputStream(new File(confPath, name));
-        }
-        return stream;
-    }
 }

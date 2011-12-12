@@ -8,6 +8,7 @@ import com.google.common.io.ByteStreams;
 import lombok.Data;
 import org.apache.commons.codec.binary.Base64;
 
+import java.io.Serializable;
 import java.math.BigInteger;
 import java.security.KeyFactory;
 import java.security.MessageDigest;
@@ -17,7 +18,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPublicKeySpec;
 
 @Data
-public class SshPublicKey {
+public class SshPublicKey implements Serializable {
     private static final String NO_COMMENT_AVAILABLE = "unavailable";
     private static final String SSH_RSA_PREFIX = "ssh-rsa";
 

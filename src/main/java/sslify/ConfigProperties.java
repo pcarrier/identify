@@ -6,5 +6,5 @@ public class ConfigProperties extends Properties {
     public static class ConfigLoadingException extends RuntimeException {
     }
 
-    public static enum Domains {LDAP, REPOSITORY, X509, HTTP_SERVER}
+    public static enum Domain {LDAP, REPOSITORY, X509, HTTP_SERVER}
 }
