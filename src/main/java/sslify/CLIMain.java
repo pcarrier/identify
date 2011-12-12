@@ -13,7 +13,7 @@ public class CLIMain {
     private static final String SSH_KEY_COMMAND = "sshkey";
     private static final String SSL_CERT_COMMAND = "sslcert";
     private static final String HTTP_SERVER_COMMAND = "server";
-    
+
     private static void showHelp() {
         System.err.println(INVALID_SYNTAX_ERROR);
     }
@@ -69,7 +69,7 @@ public class CLIMain {
             threads.add(t);
             t.run();
         }
-        for(Thread t: threads) {
+        for (Thread t : threads) {
             try {
                 t.join();
             } catch (InterruptedException e) {

@@ -1,14 +1,10 @@
 apply plugin: 'application'
-apply plugin: 'war'
+apply plugin: 'java'
 apply plugin: 'idea'
 
-repositories {
-    mavenCentral()
-    mavenRepo url: 'http://eaio.com.maven2'
+repositories { mavenCentral(); mavenRepo url: 'http://eaio.com.maven2' }
 
-}
-
-mainClassName = "sslify.CLIMain"
+mainClassName = 'sslify.CLIMain'
 
 dependencies {
     compile 'commons-codec:commons-codec:1.5'
@@ -18,13 +14,7 @@ dependencies {
     compile 'com.google.inject:guice:3.0'
     compile 'org.projectlombok:lombok:0.10.4'
     compile 'com.intellij:annotations:9.0.4'
-    // compile 'org.mortbay.jetty:jetty-hightide:8.0.4.v20111024'
     compile 'org.simpleframework:simple:4.1.21'
 }
 
-idea {
-    project {
-        jdkName = '1.6'
-        languageLevel = '1.5'
-    }
-}
+idea { project { jdkName = '1.6'; languageLevel = '1.6' } }

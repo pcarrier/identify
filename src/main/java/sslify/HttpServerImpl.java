@@ -24,10 +24,16 @@ public class HttpServerImpl implements HttpServer {
     }
 
     @Override
-    public void run() throws Exception {
-        Connection connection = new SocketConnection(this);
-        SocketAddress address = new InetSocketAddress(port);
-        connection.connect(address);
+    public void run() {
+        try {
+            Connection connection = new SocketConnection(this);
+            SocketAddress address = new InetSocketAddress(port);
+            connection.connect(address);
+        } catch (IOException e) {
+            e.printStackTrace(System.err);
+            System.err.flush();
+            System.exit(1);
+        }
     }
 
     @Override
@@ -55,7 +61,7 @@ public class HttpServerImpl implements HttpServer {
             ps.close();
         }
     }
-    
+
     private void fail(int code, Exception e, Response response) {
         PrintStream ps = null;
         try {
