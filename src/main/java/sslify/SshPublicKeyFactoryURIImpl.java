@@ -28,11 +28,13 @@ public class SshPublicKeyFactoryURIImpl implements SshPublicKeyFactory {
             throws SshPublicKey.SshPublicKeyLoadingException {
         final Formatter formatter = new Formatter();
         final String path = formatter.format(configProperties.getProperty(PROP_PATH), user).toString();
+        String line = null;
 
         BufferedReader reader = null;
         try {
             final URL keyURL = new URL(path);
             reader = new BufferedReader(new InputStreamReader(keyURL.openStream()));
+            line = reader.readLine();
         } catch (IOException e) {
             throw new SshPublicKey.SshPublicKeyLoadingException(e);
         } finally {
@@ -43,6 +45,7 @@ public class SshPublicKeyFactoryURIImpl implements SshPublicKeyFactory {
                     SshPublicKeyFactoryURIImpl.log.error(Arrays.toString(e.getStackTrace()));
                 }
             }
+            return line;
         }
     }
 
