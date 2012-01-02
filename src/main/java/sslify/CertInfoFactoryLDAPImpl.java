@@ -22,9 +22,9 @@ import java.util.Formatter;
 @Singleton
 public class CertInfoFactoryLDAPImpl implements CertInfoFactory {
     private static final String PROP_BASE_DN_USER = "queries.basedn.user";
-    private static final String PROP_QUERIES_USER = "queries.filter.user";
+    private static final String PROP_FILTER_USER = "queries.filter.user";
     private static final String PROP_BASE_DN_GROUPS = "queries.basedn.groups";
-    private static final String PROP_QUERIES_GROUPS = "queries.filter.groups";
+    private static final String PROP_FILTER_GROUPS = "queries.filter.groups";
     private static final String[]
             USER_ATTRIBUTES = {"cn", "uid", "mail"};
     private static final String[] GROUP_ATTRIBUTES = {"cn"};
@@ -59,10 +59,10 @@ public class CertInfoFactoryLDAPImpl implements CertInfoFactory {
 
         final String user_query =
                 userFormatter.format(
-                        props.getProperty(PROP_QUERIES_USER), user).toString();
+                        props.getProperty(PROP_FILTER_USER), user).toString();
         final String groups_query =
                 groupFormatter.format(
-                        props.getProperty(PROP_QUERIES_GROUPS), user).toString();
+                        props.getProperty(PROP_FILTER_GROUPS), user).toString();
 
         final NamingEnumeration<SearchResult> user_results =
                 dirContext.search(props.getProperty(PROP_BASE_DN_USER),
