@@ -51,7 +51,7 @@ public class HttpServer {
             HttpServer.log.info("started");
             server.join();
         } catch (Exception e) {
-            log.error(Arrays.toString(e.getStackTrace()));
+            log.error("{} {}", e.toString(), Arrays.toString(e.getStackTrace()));
             System.err.flush();
             System.exit(1);
         } finally {

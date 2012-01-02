@@ -64,7 +64,7 @@ public class CLIMain {
                     try {
                         runnable.exec(arg);
                     } catch (Exception e) {
-                        log.error(Arrays.toString(e.getStackTrace()));
+                        log.error("{} {}", e.toString(), Arrays.toString(e.getStackTrace()));
                     }
                 }
             });
@@ -75,7 +75,7 @@ public class CLIMain {
             try {
                 t.join();
             } catch (InterruptedException e) {
-                log.error(Arrays.toString(e.getStackTrace()));
+                log.error("{} {}", e.toString(), Arrays.toString(e.getStackTrace()));
             }
         }
     }

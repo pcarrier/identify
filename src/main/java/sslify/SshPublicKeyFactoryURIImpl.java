@@ -42,7 +42,7 @@ public class SshPublicKeyFactoryURIImpl implements SshPublicKeyFactory {
                 try {
                     reader.close();
                 } catch (IOException e) {
-                    SshPublicKeyFactoryURIImpl.log.error(Arrays.toString(e.getStackTrace()));
+                    log.error("{} {}", e.toString(), Arrays.toString(e.getStackTrace()));
                 }
             }
             return line;
