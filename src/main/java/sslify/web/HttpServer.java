@@ -38,14 +38,14 @@ public class HttpServer {
             DefaultHandler defaultHandler = new DefaultHandler();
 
             ServletContextHandler context =
-                            new ServletContextHandler(ServletContextHandler.SESSIONS);
+                    new ServletContextHandler(ServletContextHandler.SESSIONS);
             context.setContextPath("/");
 
-            handlers.setHandlers(new Handler[] {context, defaultHandler});
+            handlers.setHandlers(new Handler[]{context, defaultHandler});
 
             server.setHandler(context);
 
-            context.addServlet(new ServletHolder(x509servlet),"/x509/*");
+            context.addServlet(new ServletHolder(x509servlet), "/x509/*");
 
             server.start();
             HttpServer.log.info("started");

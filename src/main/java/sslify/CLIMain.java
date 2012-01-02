@@ -27,7 +27,7 @@ public class CLIMain {
             showHelp();
             System.exit(1);
         } else if (args[0].equals(HTTP_SERVER_COMMAND)) {
-             injector.getInstance(sslify.web.HttpServer.class).run();
+            injector.getInstance(sslify.web.HttpServer.class).run();
         } else if (args[0].equals(LDAP_COMMAND)) {
             forAllArguments(args, new Runnable() {
                 public void exec(final String name) throws Exception {

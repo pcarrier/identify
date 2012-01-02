@@ -12,6 +12,7 @@ public class CacheFactoryImpl implements CacheFactory {
 
     private static Map<Domain, String> mappings =
             new EnumMap<Domain, String>(Domain.class);
+
     static {
         mappings.put(Domain.LDAP, "ldap");
         mappings.put(Domain.REPOSITORY, "repository");

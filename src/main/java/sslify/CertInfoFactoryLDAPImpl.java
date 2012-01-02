@@ -102,7 +102,7 @@ public class CertInfoFactoryLDAPImpl implements CertInfoFactory {
         final Element element = cache.get(user);
         if (element != null) {
             CertInfo cached = (CertInfo) element.getValue();
-            if(cached == null) {
+            if (cached == null) {
                 log.debug("cached failure:'{}'", user);
                 throw new CachedFailureException();
             } else {

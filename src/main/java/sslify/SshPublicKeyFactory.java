@@ -11,6 +11,7 @@ public interface SshPublicKeyFactory {
         public CachedFailureException(Exception e) {
             super(e);
         }
+
         public CachedFailureException() {
         }
     }

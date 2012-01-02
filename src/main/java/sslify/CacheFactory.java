@@ -7,5 +7,5 @@ import java.io.FileNotFoundException;
 public interface CacheFactory {
     Cache getCache(Domain domain) throws FileNotFoundException;
 
-    public enum Domain { LDAP, REPOSITORY }
+    public enum Domain {LDAP, REPOSITORY}
 }

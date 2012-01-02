@@ -9,6 +9,7 @@ import java.io.InputStream;
 
 public class ConfigFileLocator {
     private static final String CONF_PATH_PROPERTY = "sslify.configpath";
+
     @NotNull
     static InputStream getInputStream(final String name) throws FileNotFoundException {
         final String confPath = System.getProperty(CONF_PATH_PROPERTY);

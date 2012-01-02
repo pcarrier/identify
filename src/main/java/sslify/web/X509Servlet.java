@@ -2,15 +2,17 @@ package sslify.web;
 
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
-import sslify.*;
+import sslify.CertInfoFactory;
+import sslify.ConfigProperties;
+import sslify.SshPublicKey;
+import sslify.X509CertificateFactory;
 
 import javax.naming.NamingException;
-import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.security.GeneralSecurityException;
 
 @Slf4j
@@ -34,7 +36,7 @@ public class X509Servlet extends HttpServlet {
 
         try {
             printStream = new PrintStream(resp.getOutputStream());
-            if(!path.matches("/[a-z-]+")) {
+            if (!path.matches("/[a-z-]+")) {
                 this.notFound(new Exception("Invalid username"), path, resp, printStream);
             }
             printStream.println(x509CertificateFactory.get(user).toPEM());
