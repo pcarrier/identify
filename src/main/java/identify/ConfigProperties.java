@@ -1,4 +1,4 @@
-package sslify;
+package identify;
 
 import java.util.Properties;
 
@@ -8,6 +8,5 @@ public class ConfigProperties extends Properties {
             super(e);
         }
     }
-
-    public static enum Domain {LDAP, REPOSITORY, X509, HTTP_SERVER}
+    public static enum Domain {LDAP, REPOSITORY, X509}
 }

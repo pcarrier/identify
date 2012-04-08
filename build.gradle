@@ -1,33 +1,30 @@
 apply plugin: 'java'
-apply plugin: 'idea'
-
-// apply plugin: 'application'
-// mainClassName = 'sslify.CLIMain'
 
 jar {
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     ['SF', 'DSA', 'RSA'].each { exclude "META-INF/*.$it" }
 }
 
-manifest.mainAttributes('Main-Class' : 'sslify.CLIMain')
+manifest.mainAttributes('Main-Class' : 'identify.CLIMain')
 
-repositories { mavenCentral(); mavenRepo url: 'http://eaio.com.maven2' }
+repositories {
+    mavenCentral()
+    mavenRepo url: 'http://eaio.com.maven2'
+}
 
 dependencies {
     compile 'commons-codec:commons-codec:1.5'
     compile 'bouncycastle:bcprov-jdk16:140'
+    compile 'commons-codec:commons-codec:1.6'
     compile 'com.eaio.uuid:uuid:3.2'
     compile 'com.google.guava:guava:10.0.1'
     compile 'com.google.inject:guice:3.0'
-    compile 'org.projectlombok:lombok:0.10.4'
+    compile 'org.projectlombok:lombok:0.11.0'
     compile 'com.intellij:annotations:9.0.4'
-    compile 'org.eclipse.jetty:jetty-server:8.1.0.RC1'
-    compile 'org.eclipse.jetty:jetty-servlet:8.1.0.RC1'
-    compile 'net.sf.ehcache:ehcache-core:2.5.0'
-    compile 'ch.qos.logback:logback-classic:1.0.0'
+    compile 'ch.qos.logback:logback-classic:1.0.1'
     compile 'org.slf4j:slf4j-api:1.6.4'
+    compile 'org.mnode.ical4j:ical4j-vcard:0.9.4'
 }
 
 sourceCompatibility = '1.6'
 targetCompatibility = '1.6'
-idea { project { jdkName = '1.7'; languageLevel = '1.6' } }

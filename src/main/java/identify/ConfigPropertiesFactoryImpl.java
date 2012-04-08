@@ -1,10 +1,9 @@
-package sslify;
+package identify;
 
 import com.google.inject.Singleton;
 import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.EnumMap;
@@ -21,13 +20,11 @@ public class ConfigPropertiesFactoryImpl implements ConfigPropertiesFactory {
         DomainMapping.put(ConfigProperties.Domain.LDAP, "ldap");
         DomainMapping.put(ConfigProperties.Domain.REPOSITORY, "repo");
         DomainMapping.put(ConfigProperties.Domain.X509, "x509");
-        DomainMapping.put(ConfigProperties.Domain.HTTP_SERVER, "http.server");
     }
 
     private static final Map<ConfigProperties.Domain, ConfigProperties> loaded =
             new EnumMap<ConfigProperties.Domain, ConfigProperties>(ConfigProperties.Domain.class);
 
-    /* Optimisticly non-synchronized */
     @NotNull
     @Override
     public ConfigProperties get(@NonNull ConfigProperties.Domain domain)
@@ -44,17 +41,13 @@ public class ConfigPropertiesFactoryImpl implements ConfigPropertiesFactory {
             props.load(inputStream);
             loaded.put(domain, props);
             return props;
-        } catch (FileNotFoundException e) {
-            throw new ConfigProperties.ConfigLoadingException(e);
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new ConfigProperties.ConfigLoadingException(e);
         } finally {
             if (inputStream != null)
                 try {
                     inputStream.close();
-                } catch (IOException ignored) {
-                }
+                } catch (IOException ignored) {}
         }
     }
-
 }

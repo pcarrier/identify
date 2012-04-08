@@ -1,4 +1,4 @@
-package sslify;
+package identify;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
@@ -6,6 +6,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
 import lombok.Data;
+import lombok.NonNull;
 import org.apache.commons.codec.binary.Base64;
 
 import java.io.Serializable;
@@ -43,7 +44,7 @@ public class SshPublicKey implements Serializable {
         return new String(dest);
     }
 
-    public SshPublicKey(final String description) throws SshPublicKeyLoadingException {
+    public SshPublicKey(@NonNull final String description) throws SshPublicKeyLoadingException {
         final String[] parts = Iterables.toArray(Splitter.on(CharMatcher.JAVA_WHITESPACE).split(description), String.class);
         final String encodedKey;
 
@@ -99,9 +100,6 @@ public class SshPublicKey implements Serializable {
     public static class SshPublicKeyLoadingException extends Exception {
         public SshPublicKeyLoadingException(Exception e) {
             super(e);
-        }
-
-        public SshPublicKeyLoadingException() {
         }
     }
 }

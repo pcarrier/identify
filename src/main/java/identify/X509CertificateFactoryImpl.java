@@ -1,10 +1,9 @@
-package sslify;
+package identify;
 
 import com.eaio.uuid.UUID;
 import com.google.common.base.Joiner;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import lombok.NonNull;
 import org.bouncycastle.asn1.DERObjectIdentifier;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.X509Extensions;
@@ -32,7 +31,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 @Singleton
-public class X509CertificateFactoryGeneratorImpl implements X509CertificateFactory, PasswordFinder {
+public class X509CertificateFactoryImpl implements X509CertificateFactory, PasswordFinder {
     private static final String
             PROPS_HOURS_BEFORE = "hours.before",
             PROPS_HOURS_AFTER = "hours.after",
@@ -43,7 +42,6 @@ public class X509CertificateFactoryGeneratorImpl implements X509CertificateFacto
 
     private final ConfigProperties props;
     private final SshPublicKeyFactory sshPublicKeyFactory;
-    private final CertInfoFactory certInfoFactory;
     private final String hostname;
     private final boolean checkCert;
     final int hoursBefore;
@@ -56,9 +54,8 @@ public class X509CertificateFactoryGeneratorImpl implements X509CertificateFacto
     }
 
     @Inject
-    X509CertificateFactoryGeneratorImpl(ConfigPropertiesFactory configPropertiesFactory,
-                                        CertInfoFactory certInfoFactory,
-                                        SshPublicKeyFactory sshPublicKeyFactory)
+    X509CertificateFactoryImpl(ConfigPropertiesFactory configPropertiesFactory,
+                               SshPublicKeyFactory sshPublicKeyFactory)
             throws IOException, ConfigProperties.ConfigLoadingException {
         this.props = configPropertiesFactory.get(ConfigProperties.Domain.X509);
         this.hoursBefore = Integer.parseInt(props.getProperty(PROPS_HOURS_BEFORE));
@@ -66,7 +63,6 @@ public class X509CertificateFactoryGeneratorImpl implements X509CertificateFacto
         this.checkCert = Boolean.parseBoolean(props.getProperty(PROPS_CHECK));
 
         this.sshPublicKeyFactory = sshPublicKeyFactory;
-        this.certInfoFactory = certInfoFactory;
         this.hostname = InetAddress.getLocalHost().getHostName();
         this.caPrivateKey = readCAPrivateKey();
         this.caCert = readCACert();
@@ -109,13 +105,12 @@ public class X509CertificateFactoryGeneratorImpl implements X509CertificateFacto
 
     @NotNull
     @Override
-    public X509Certificate get(@NonNull String user)
+    public X509Certificate get(UserInfo infos)
             throws GeneralSecurityException, NamingException, SshPublicKey.SshPublicKeyLoadingException, ConfigProperties.ConfigLoadingException {
         final UUID uuid = new UUID();
         final X509V3CertificateGenerator generator = new X509V3CertificateGenerator();
 
-        final SshPublicKey sshKey = sshPublicKeyFactory.get(user);
-        final CertInfo infos = certInfoFactory.get(user);
+        final SshPublicKey sshKey = sshPublicKeyFactory.get(infos.getUid());
 
         final Calendar calendar = Calendar.getInstance();
 
@@ -179,5 +174,4 @@ public class X509CertificateFactoryGeneratorImpl implements X509CertificateFacto
     public char[] getPassword() {
         return new char[0];
     }
-
 }

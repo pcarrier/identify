@@ -1,4 +1,4 @@
-package sslify;
+package identify;
 
 import lombok.Data;
 import org.bouncycastle.openssl.PEMWriter;
@@ -17,7 +17,6 @@ public class X509Certificate {
         StringWriter stringWriter = null;
         PEMWriter pemWriter = null;
         String result = null;
-
         try {
             stringWriter = new StringWriter();
             pemWriter = new PEMWriter(stringWriter);

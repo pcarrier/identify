@@ -1,4 +1,4 @@
-package sslify;
+package identify;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -8,17 +8,18 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 public class ConfigFileLocator {
-    private static final String CONF_PATH_PROPERTY = "sslify.configpath";
+    private static final String CONF_PATH_PROPERTY = "identify.configpath";
 
     @NotNull
     static InputStream getInputStream(final String name) throws FileNotFoundException {
         final String confPath = System.getProperty(CONF_PATH_PROPERTY);
         final InputStream stream;
-        if (confPath == null) {
+
+        if (confPath == null)
             stream = ConfigFileLocator.class.getClassLoader().getResourceAsStream(name);
-        } else {
+        else
             stream = new FileInputStream(new File(confPath, name));
-        }
+
         return stream;
     }
 }
