@@ -1,5 +1,5 @@
 package identify;
 
 public interface TreeGeneratorFactory {
-    TreeGenerator getGenerator(String path);
+    abstract TreeGenerator getGenerator(String path) throws ConfigProperties.ConfigLoadingException;
 }

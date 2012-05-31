@@ -20,6 +20,7 @@ public class ConfigPropertiesFactoryImpl implements ConfigPropertiesFactory {
         DomainMapping.put(ConfigProperties.Domain.LDAP, "ldap");
         DomainMapping.put(ConfigProperties.Domain.REPOSITORY, "repo");
         DomainMapping.put(ConfigProperties.Domain.X509, "x509");
+        DomainMapping.put(ConfigProperties.Domain.TREE, "tree");
     }
 
     private static final Map<ConfigProperties.Domain, ConfigProperties> loaded =
