@@ -34,7 +34,7 @@ public class TreeGenerator {
         final String x509DateFormat = configPropertiesFactory.get(ConfigProperties.Domain.TREE).get(PROP_TREE_X509_PATH).toString();
         x509SubPath = new SimpleDateFormat(x509DateFormat).format(new Date());
         x509Dir = new File(fullDir, x509SubPath);
-        fullVCardFile = new File(fullDir, "sall.vcf");
+        fullVCardFile = new File(fullDir, "everybody.vcf");
     }
 
     public String generate() throws IOException, NamingException {
