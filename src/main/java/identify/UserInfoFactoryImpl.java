@@ -24,6 +24,7 @@ public class UserInfoFactoryImpl implements UserInfoFactory {
     private static final String PROP_FILTER_GROUPS = "queries.filter.groups";
     private static final String PROP_KEY_USER = "queries.key.user";
     private static final String PROP_KEY_GROUP = "queries.key.group";
+    private static final String PROP_URI_SCHEME = "uri.scheme";
 
     private static SearchControls groupSearchControls, usersSearchControls;
     private final ConfigProperties props;
@@ -57,7 +58,7 @@ public class UserInfoFactoryImpl implements UserInfoFactory {
 
     private UserInfo getUser(SearchResult sr) throws NamingException {
         final String cn, uid, mail;
-        String mobile = null, department = null, title = null, l = null;
+        String mobile = null, department = null, title = null, l = null, uri = null, uri_scheme = null;
         final ArrayList<String> groups = new ArrayList<String>();
         final Attributes attributes = sr.getAttributes();
         final InitialDirContext dirContext = new InitialDirContext(this.props);
@@ -82,6 +83,11 @@ public class UserInfoFactoryImpl implements UserInfoFactory {
             l = attributes.get("l").get().toString();
         } catch (NullPointerException ignored) {}
 
+        uri_scheme = props.getProperty(PROP_URI_SCHEME);
+
+        if (uri_scheme != null)
+            uri = String.format(uri_scheme, uid);
+
         final NamingEnumeration<SearchResult> groups_results =
                 dirContext.search(props.getProperty(PROP_BASE_DN_GROUPS),
                         buildGroupQuery(attributes.get(props.getProperty(PROP_KEY_USER)).get().toString()), groupSearchControls);
@@ -91,7 +97,7 @@ public class UserInfoFactoryImpl implements UserInfoFactory {
 
         dirContext.close();
 
-        return new UserInfo(cn, uid, mail, mobile, department, title, l, groups.toArray(new String[groups.size()]));
+        return new UserInfo(cn, uid, mail, mobile, department, title, l, uri, groups.toArray(new String[groups.size()]));
     }
 
     @Override

@@ -16,7 +16,7 @@ import java.util.List;
 @Data
 public class UserInfo implements Serializable {
     @NonNull private final String cn, uid, mail;
-    private final String mobile, department, title, l;
+    private final String mobile, department, title, l, uri;
     @NonNull private final String[] groups;
 
     public String toVCard() {
@@ -33,7 +33,8 @@ public class UserInfo implements Serializable {
         if (l != null)
             properties.add(new Address(null, null, null, l.trim(), null, null, null, Type.WORK));
         try {
-            properties.add(new Url(new URI(String.format("https://wiki.spotify.net/wiki/User:%s", uid))));
+            if (uri != null)
+                properties.add(new Url(new URI(uri)));
         } catch (URISyntaxException ignored) {}
 
         return new VCard(properties).toString();
