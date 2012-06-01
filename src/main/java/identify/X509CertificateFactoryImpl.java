@@ -126,7 +126,7 @@ public class X509CertificateFactoryImpl implements X509CertificateFactory, Passw
         attrsHash.put(X509Principal.EmailAddress, infos.getMail());
         attrsVector.add(X509Principal.EmailAddress);
 
-        attrsHash.put(X509Principal.OU, Joiner.on('+').join(infos.getGroups()));
+        attrsHash.put(X509Principal.OU, Joiner.on(',').join(infos.getGroups()));
         attrsVector.add(X509Principal.OU);
 
         generator.setSubjectDN(new X509Principal(attrsVector, attrsHash));
