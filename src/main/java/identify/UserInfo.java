@@ -21,8 +21,7 @@ public class UserInfo implements Serializable {
 
     public String toVCard() {
         List<Property> properties = new ArrayList<Property>();
-        properties.add(Kind.INDIVIDUAL);
-        properties.add(new Name(cn));
+        properties.add(new Fn(cn));
         properties.add(new Email(mail));
         if (mobile != null)
             properties.add(new Telephone(mobile));
