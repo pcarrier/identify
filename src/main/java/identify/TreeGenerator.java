@@ -15,10 +15,10 @@ import java.util.List;
 
 @Slf4j
 public class TreeGenerator {
-    private final static String PROP_TREE_X509_PATH = "tree.x509.path";
-    private final String x509SubPath;
+    private final static String PROP_SUBPATH = "tree.subpath";
+    private final String outputSubPath;
     private final File fullDir;
-    private final File x509Dir;
+    private final File outputDir;
     private final File fullVCardFile;
     private final UserInfoFactory certInfoFactory;
     private final X509CertificateFactory x509Factory;
@@ -31,14 +31,14 @@ public class TreeGenerator {
         this.x509Factory = x509Factory;
 
         fullDir = new File(path);
-        final String x509DateFormat = configPropertiesFactory.get(ConfigProperties.Domain.TREE).get(PROP_TREE_X509_PATH).toString();
-        x509SubPath = new SimpleDateFormat(x509DateFormat).format(new Date());
-        x509Dir = new File(fullDir, x509SubPath);
-        fullVCardFile = new File(fullDir, "everybody.vcf");
+        final String dateFormat = configPropertiesFactory.get(ConfigProperties.Domain.TREE).get(PROP_SUBPATH).toString();
+        outputSubPath = new SimpleDateFormat(dateFormat).format(new Date());
+        outputDir = new File(fullDir, outputSubPath);
+        fullVCardFile = new File(outputDir, "everybody.vcf");
     }
 
     public String generate() throws IOException, NamingException {
-        if (!x509Dir.mkdirs()) {
+        if (!outputDir.mkdirs()) {
             throw new RuntimeException("Destination already exists. We don't want to overwrite generated certificates.");
         }
 
@@ -52,17 +52,17 @@ public class TreeGenerator {
             try {
                 String vCard = user.toVCard();
                 vCardBufferedWriter.write(vCard);
-                Files.write(vCard, new File(fullDir, String.format("%s.vcf", user.getUid())), Charsets.UTF_8);
+                Files.write(vCard, new File(outputDir, String.format("%s.vcf", user.getUid())), Charsets.UTF_8);
 
                 /* Write the vCard first as x509 fails for all non-tech users. */
                 String cert = x509Factory.get(user).toPEM();
-                Files.write(cert, new File(x509Dir, String.format("%s.pem", user.getUid())), Charsets.UTF_8);
+                Files.write(cert, new File(outputDir, String.format("%s.pem", user.getUid())), Charsets.UTF_8);
             } catch (Exception e) {
                     log.warn("Failure: {}", e.toString());
             }
         }
 
         vCardBufferedWriter.close();
-        return x509SubPath;
+        return outputSubPath;
     }
 }
