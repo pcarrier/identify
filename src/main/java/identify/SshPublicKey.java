@@ -67,7 +67,8 @@ public class SshPublicKey implements Serializable {
             throw new SshPublicKeyLoadingException(e);
         }
         sha1Digester.update(decodedKey);
-        fingerprint = new BigInteger(sha1Digester.digest()).toString(16);
+        final byte[] digest = sha1Digester.digest();
+        fingerprint = Bytes.toHex(digest);
 
         final ByteArrayDataInput keyInput = ByteStreams.newDataInput(decodedKey);
         final String type_string = readString(keyInput);
