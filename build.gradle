@@ -9,7 +9,7 @@ manifest.mainAttributes('Main-Class' : 'identify.CLIMain')
 
 repositories {
     mavenCentral()
-    mavenRepo url: 'http://eaio.com.maven2'
+    mavenRepo urls: 'http://eaio.com.maven2'
 }
 
 dependencies {
